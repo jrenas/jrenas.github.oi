@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>碱金属光谱分析 · 能级闯关</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0b0e1a;
+            color: #e0e6f0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 1100px;
+            width: 100%;
+            background: #141a2b;
+            border-radius: 28px;
+            padding: 24px 28px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            position: relative;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #2a3350;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .title-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .title-area h1 {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #b7c9ff, #7aa3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .badge {
+            background: #1f2a44;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 13px;
+            color: #a0b8f0;
+            border: 1px solid #33446b;
+        }
+        .stars-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #1a2138;
+            padding: 6px 18px 6px 14px;
+            border-radius: 40px;
+            font-size: 18px;
+            border: 1px solid #3b4a70;
+        }
+        .stars-box span {
+            color: #ffd966;
+        }
+        #starCount {
+            font-weight: 700;
+            font-size: 22px;
+            color: #ffe484;
+            min-width: 28px;
+            text-align: center;
+        }
+        .reset-btn {
+            background: #2a3457;
+            border: none;
+            color: #bcc9f0;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #3f4d79;
+        }
+        .reset-btn:hover {
+            background: #3c4a74;
+            color: #fff;
+        }
+        .level-panel {
+            background: #10172a;
+            border-radius: 20px;
+            padding: 24px 26px;
+            border: 1px solid #26304d;
+            margin-bottom: 20px;
+            min-height: 380px;
+            transition: 0.25s;
+        }
+        .level-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .level-desc {
+            color: #8f9fc7;
+            font-size: 15px;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin: 18px 0 12px;
+        }
+        .option-btn {
+            background: #1d2742;
+            border: 1px solid #36466b;
+            color: #d0dcf5;
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            flex: 1 0 auto;
+            max-width: 280px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.3px;
+        }
+        .option-btn:hover {
+            background: #2b3a60;
+            border-color: #5e74a5;
+            transform: scale(1.02);
+        }
+        .option-btn.correct {
+            background: #1f5830;
+            border-color: #3fbd6b;
+            box-shadow: 0 0 20px rgba(63, 189, 107, 0.25);
+        }
+        .option-btn.wrong {
+            background: #6b2a32;
+            border-color: #d45a6a;
+        }
+        .option-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .feedback {
+            margin-top: 16px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 15px;
+            background: #1d253f;
+            border-left: 5px solid #5b7bc0;
+            display: none;
+            line-height: 1.6;
+        }
+        .feedback.show {
+            display: block;
+        }
+        .feedback .stars-gain {
+            color: #ffd966;
+            font-weight: 700;
+        }
+        .next-btn {
+            margin-top: 18px;
+            background: #3f5a9e;
+            border: none;
+            color: #fff;
+            padding: 10px 34px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #5b7bc0;
+            display: none;
+        }
+        .next-btn:hover {
+            background: #5470b8;
+            transform: scale(1.02);
+        }
+        .next-btn.show {
+            display: inline-block;
+        }
+        .drag-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin: 12px 0;
+        }
+        .tag-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px;
+            background: #0e1428;
+            border-radius: 16px;
+            border: 1px dashed #3f4d79;
+            min-height: 70px;
+            flex: 1 1 200px;
+        }
+        .tag {
+            background: #253155;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: grab;
+            border: 1px solid #4e62a0;
+            user-select: none;
+            transition: 0.15s;
+            font-family: 'Courier New', monospace;
+        }
+        .tag:active {
+            cursor: grabbing;
+            opacity: 0.6;
+        }
+        .tag.dragging {
+            opacity: 0.3;
+        }
+        .grid-slots {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 2 1 400px;
+        }
+        .slot-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .slot-row .n-label {
+            width: 44px;
+            font-size: 15px;
+            color: #7d8fbb;
+            font-weight: 500;
+        }
+        .slot {
+            width: 72px;
+            height: 52px;
+            background: #111b33;
+            border: 2px dashed #3b4a70;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 600;
+            transition: 0.15s;
+            font-family: 'Courier New', monospace;
+            color: #b0c6f0;
+        }
+        .slot.filled {
+            border-style: solid;
+            border-color: #5b7bc0;
+            background: #1b2748;
+        }
+        .slot.highlight {
+            border-color: #ffd966;
+            box-shadow: 0 0 20px rgba(255, 217, 102, 0.2);
+        }
+        .col-header {
+            width: 72px;
+            text-align: center;
+            font-size: 13px;
+            color: #6a7fa8;
+        }
+        .info-tip {
+            margin-top: 12px;
+            padding: 10px 16px;
+            background: #1a2340;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #acbef0;
+            border-left: 4px solid #4e70b0;
+            min-height: 42px;
+        }
+        .info-tip strong {
+            color: #ffd966;
+        }
+        .final-screen {
+            text-align: center;
+            padding: 30px 10px;
+        }
+        .final-screen h2 {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .final-screen .big-stars {
+            font-size: 56px;
+            letter-spacing: 8px;
+            margin: 16px 0;
+        }
+        .final-screen .sub {
+            color: #8f9fc7;
+            font-size: 18px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .flex-center {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .shake {
+            animation: shake 0.35s;
+        }
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-8px);
+            }
+            75% {
+                transform: translateX(8px);
+            }
+        }
+
+        /* ===== 开场介绍页面 ===== */
+        .intro-screen {
+            text-align: center;
+            padding: 30px 20px 20px;
+        }
+        .intro-screen h1 {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd966, #f0a06e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        .intro-screen .subtitle {
+            color: #8f9fc7;
+            font-size: 18px;
+            margin-bottom: 24px;
+            letter-spacing: 2px;
+        }
+        .intro-screen .story-box {
+            background: #0e1428;
+            border-radius: 16px;
+            padding: 24px 30px;
+            border: 1px solid #26304d;
+            text-align: left;
+            margin: 16px 0 24px;
+            line-height: 1.8;
+            color: #c8d6f5;
+            font-size: 15px;
+        }
+        .intro-screen .story-box strong {
+            color: #ffd966;
+        }
+        .intro-screen .rules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin: 16px 0 24px;
+            text-align: left;
+        }
+        .intro-screen .rules-grid .rule-item {
+            background: #0e1428;
+            border-radius: 12px;
+            padding: 14px 20px;
+            border: 1px solid #1f2942;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #b7c3e8;
+            font-size: 14px;
+        }
+        .intro-screen .rules-grid .rule-item .icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .intro-screen .rules-grid .rule-item .label {
+            font-weight: 600;
+            color: #d0ddff;
+        }
+        .intro-screen .start-btn {
+            background: #3f5a9e;
+            border: none;
+            color: #fff;
+            padding: 14px 60px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid #5b7bc0;
+            box-shadow: 0 0 30px rgba(63, 90, 158, 0.3);
+            margin-top: 8px;
+        }
+        .intro-screen .start-btn:hover {
+            background: #5470b8;
+            transform: scale(1.04);
+            box-shadow: 0 0 50px rgba(63, 90, 158, 0.5);
+        }
+        @media (max-width: 720px) {
+            .intro-screen .rules-grid {
+                grid-template-columns: 1fr;
+            }
+            .intro-screen h1 {
+                font-size: 26px;
+            }
+            .intro-screen .story-box {
+                padding: 16px 18px;
+                font-size: 14px;
+            }
+            .game-container {
+                padding: 12px;
+            }
+            .slot {
+                width: 50px;
+                height: 40px;
+                font-size: 13px;
+            }
+            .col-header {
+                width: 50px;
+                font-size: 11px;
+            }
+            .slot-row .n-label {
+                width: 32px;
+                font-size: 12px;
+            }
+            .option-btn {
+                font-size: 14px;
+                padding: 10px 16px;
+                max-width: 100%;
+            }
+        }
+
+        /* ===== 第4关 ===== */
+        .level6-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .level6-canvas-wrapper {
+            background: #0c1224;
+            border-radius: 18px;
+            border: 1px solid #26304d;
+            padding: 16px;
+            position: relative;
+            touch-action: none;
+            overflow: auto;
+        }
+        .level6-canvas-wrapper svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #0c1224;
+            border-radius: 12px;
+            min-height: 700px;
+            touch-action: none;
+        }
+        .level6-spectrum-area {
+            background: #0c1224;
+            border-radius: 18px;
+            border: 1px solid #26304d;
+            padding: 16px 12px;
+            min-height: 200px;
+            position: relative;
+        }
+        .level6-spectrum-area h4 {
+            text-align: center;
+            color: #889cd0;
+            font-weight: 400;
+            font-size: 15px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .spectrum-canvas {
+            width: 100%;
+            height: 140px;
+            background: #080d1a;
+            border-radius: 12px;
+            position: relative;
+            border: 1px solid #1f2942;
+            overflow: hidden;
+        }
+        .spectrum-line {
+            position: absolute;
+            bottom: 8px;
+            width: 6px;
+            border-radius: 3px;
+            transform-origin: bottom center;
+            transition: filter 0.2s;
+            cursor: pointer;
+        }
+        .spectrum-line:hover {
+            filter: brightness(1.6);
+            transform: scaleY(1.08);
+        }
+        .spectrum-line.active-pulse {
+            animation: pulseGlow 0.7s ease 3;
+        }
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                filter: brightness(1) drop-shadow(0 0 0 transparent);
+            }
+            50% {
+                filter: brightness(2.5) drop-shadow(0 0 16px #ffd966);
+            }
+        }
+        .spectrum-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #4f618a;
+            padding: 0 4px;
+        }
+        .level6-tools {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .level6-tools .btn-sm {
+            background: #2a3457;
+            border: 1px solid #3f4d79;
+            color: #bcc9f0;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .level6-tools .btn-sm:hover {
+            background: #3c4a74;
+            color: #fff;
+        }
+        .level6-tools .conn-info {
+            color: #8f9fc7;
+            font-size: 14px;
+        }
+        .level-line {
+            cursor: pointer;
+            transition: 0.2s;
+            stroke: #7a8fc0;
+        }
+        .level-line:hover {
+            stroke: #a8c0f0;
+            stroke-width: 4;
+        }
+        .level-line.selected {
+            stroke: #ffd966;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 16px rgba(255, 217, 102, 0.5));
+        }
+        .level-line.drag-hover {
+            stroke: #ffd966;
+            stroke-width: 5;
+            filter: drop-shadow(0 0 20px rgba(255, 217, 102, 0.6));
+        }
+        .conn-line {
+            transition: 0.2s;
+        }
+        .conn-line.highlight {
+            filter: drop-shadow(0 0 12px #ffd966);
+            stroke-width: 5;
+        }
+        .drag-preview {
+            stroke: #ffd966;
+            stroke-width: 2.5;
+            stroke-dasharray: 6, 5;
+            opacity: 0.8;
+        }
+        .select-ring {
+            fill: none;
+            stroke: #ffd966;
+            stroke-width: 2;
+            stroke-dasharray: 4, 4;
+            opacity: 0.7;
+            animation: ringPulse 1.2s ease-in-out infinite;
+        }
+        @keyframes ringPulse {
+            0%,
+            100% {
+                opacity: 0.4;
+                r: 24;
+            }
+            50% {
+                opacity: 1;
+                r: 30;
+            }
+        }
+        .series-legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 8px 0;
+            font-size: 13px;
+            color: #8f9fc7;
+        }
+        .series-legend span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .series-legend .dot {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        @media (max-width: 720px) {
+            .level6-canvas-wrapper svg {
+                min-height: 550px;
+            }
+            .series-legend {
+                font-size: 11px;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="app">
+        <div class="header">
+            <div class="title-area">
+                <h1>⚛️ 碱金属光谱分析</h1>
+                <span class="badge">Na 原子</span>
+            </div>
+            <div class="flex-center">
+                <div class="stars-box">⭐ <span id="starCount">0</span></div>
+                <button class="reset-btn" onclick="resetGame()">↻ 重来</button>
+            </div>
+        </div>
+
+        <div id="levelContainer"></div>
+
+        <div class="info-tip" id="globalTip">💡 导师笔记：每一步都是构建光谱的关键。</div>
+    </div>
+
+    <script>
+        // ==================== 游戏状态 ====================
+        const state = {
+            currentLevel: -1,
+            stars: 0,
+            levelAttempts: [0, 0, 0, 0],
+            levelCompleted: [false, false, false, false],
+            drag3: { filled: {} },
+            connections: [],
+            spectrumLines: [],
+            dragFrom: null,
+            isDragging: false,
+            dragStartX: 0,
+            dragStartY: 0,
+            dragCurrentX: 0,
+            dragCurrentY: 0,
+            gameStarted: false,
+        };
+
+        // ==================== 关卡数据（共4关） ====================
+        const LEVELS = [{
+            id: 0,
+            title: '第1关 · 电子组态',
+            desc: '钠原子 (Z=11) 的基态电子组态是？',
+            type: 'choice',
+            options: [
+                { label: '1s² 2s² 2p⁶ 3s¹', correct: true },
+                { label: '1s² 2s² 2p⁵ 3s²', correct: false },
+                { label: '1s² 2s² 2p⁶ 3p¹', correct: false },
+                { label: '1s² 2s² 2p⁶ 3d¹', correct: false },
+            ],
+            correctFeedback: '🌟 完美！钠是碱金属，最外层一个3s电子。+3⭐',
+            wrongFeedback: '💡 提示：2p 最多6个电子，剩余1个进入能量最低的 3s。再试！',
+            secondFeedback: '👍 对了！记住：3s 比 3p 能量低。+1⭐',
+        }, {
+            id: 1,
+            title: '第2关 · 填充激发态',
+            desc: '将下方能级标签拖入正确的 (n, l) 空位。3S 已填好。',
+            type: 'drag3',
+            tags: ['3P', '4S', '3D', '4P', '5S'],
+            slots: [
+                { id: '3-1', n: 3, l: 1, correct: '3P' },
+                { id: '3-2', n: 3, l: 2, correct: '3D' },
+                { id: '4-0', n: 4, l: 0, correct: '4S' },
+                { id: '4-1', n: 4, l: 1, correct: '4P' },
+                { id: '5-0', n: 5, l: 0, correct: '5S' },
+            ],
+            correctFeedback: '🌟 优秀！能级顺序：3S<3P<4S≈3D<4P<5S≈4D<5P<4F<5D<5F。+3⭐',
+            secondFeedback: '👍 坚持！随着l增大，能级间距逐渐减小。+1⭐',
+        }, {
+            id: 2,
+            title: '第3关 · 跃迁定则',
+            desc: '电偶极辐射的跃迁选择定则是？',
+            type: 'choice',
+            options: [
+                { label: 'Δl = 0，±1，Δj = 0, ±1', correct: false },
+                { label: 'Δl = ±1，Δj = 0, ±1 (j=0→0 除外)', correct: true },
+                { label: 'Δl = 0，±1，Δj = ±1', correct: false },
+                { label: 'Δl = ±1，Δj = 0, ±1', correct: false },
+            ],
+            correctFeedback: '🌟 漂亮！口诀："角量子变一，总角可不变或变一"。+3⭐',
+            wrongFeedback: '💡 电偶极要求宇称改变 → Δl 必须为奇数（±1）。再选！',
+            secondFeedback: '👍 没错！Δl=±1 是宇称反转的要求。+1⭐',
+        }, {
+            id: 3,
+            title: '第4关 · 碱金属光谱线系',
+            desc: '拖拽绘制碱金属四大线系：主线系 (nP→3S)、第一辅线系 (nD→3P)、第二辅线系 (nS→3P)、伯格曼线系 (nF→3D)',
+            type: 'level6',
+        }, ];
+
+        // ==================== 第4关 能级数据 ====================
+        // 真实钠原子能级：随着l增大，能级间距逐渐减小
+        // s→p间距大，p→d间距中等，d→f间距小
+        // 3D和4S接近，4D和5S接近，4F和5D接近
+        const LEVEL6_NODES = [
+            // n=5: 从高到低排列
+            { id: '5F', n: 5, l: 3, x: 480, y: 10 },
+            { id: '5D', n: 5, l: 2, x: 400, y: 25 },
+            { id: '5P', n: 5, l: 1, x: 260, y: 45 },
+            { id: '5S', n: 5, l: 0, x: 120, y: 70 },
+            // n=4: 4F和5D接近
+            { id: '4F', n: 4, l: 3, x: 480, y: 75 },
+            { id: '4D', n: 4, l: 2, x: 400, y: 85 },
+            { id: '4P', n: 4, l: 1, x: 260, y: 170 },
+            { id: '4S', n: 4, l: 0, x: 120, y: 215 },
+            // n=3: 3D和4S接近
+            { id: '3D', n: 3, l: 2, x: 400, y: 235 },
+            { id: '3P', n: 3, l: 1, x: 260, y: 365 },
+            { id: '3S', n: 3, l: 0, x: 120, y: 420 },
+        ];
+
+        // 列位置：s:120, p:260, d:400, f:480
+
+        const SERIES_COLORS = {
+            '主线系': '#ff6b6b',
+            '第一辅线系': '#4ecdc4',
+            '第二辅线系': '#f9ca24',
+            '伯格曼线系': '#a29bfe',
+        };
+
+        const ALLOWED_TRANSITIONS = [
+            // 主线系: nP → 3S
+            { from: '3P', to: '3S', series: '主线系' },
+            { from: '4P', to: '3S', series: '主线系' },
+            { from: '5P', to: '3S', series: '主线系' },
+            // 第一辅线系: nD → 3P
+            { from: '3D', to: '3P', series: '第一辅线系' },
+            { from: '4D', to: '3P', series: '第一辅线系' },
+            { from: '5D', to: '3P', series: '第一辅线系' },
+            // 第二辅线系: nS → 3P
+            { from: '4S', to: '3P', series: '第二辅线系' },
+            { from: '5S', to: '3P', series: '第二辅线系' },
+            // 伯格曼线系: nF → 3D
+            { from: '4F', to: '3D', series: '伯格曼线系' },
+            { from: '5F', to: '3D', series: '伯格曼线系' },
+        ];
+
+        // ==================== 渲染引擎 ====================
+        const container = document.getElementById('levelContainer');
+        const starSpan = document.getElementById('starCount');
+        const tipEl = document.getElementById('globalTip');
+
+        function render() {
+            if (!state.gameStarted) {
+                renderIntro();
+                return;
+            }
+
+            const lv = LEVELS[state.currentLevel];
+            if (!lv) { renderFinal(); return; }
+            const completed = state.levelCompleted[state.currentLevel];
+            let html = `<div class="level-panel">`;
+            html += `<div class="level-title">${lv.title} <span style="font-size:14px;color:#6a7fa8;font-weight:400;">${completed?'✅ 已完成':'⏳ 进行中'}</span></div>`;
+            html += `<div class="level-desc">${lv.desc}</div>`;
+
+            if (lv.type === 'choice') html += renderChoice(lv);
+            else if (lv.type === 'drag3') html += renderDrag3(lv);
+            else if (lv.type === 'level6') html += renderLevel6();
+
+            html += `<div class="feedback" id="feedback"></div>`;
+            html += `<button class="next-btn" id="nextBtn" onclick="goNext()">下一关 →</button>`;
+            html += `</div>`;
+            container.innerHTML = html;
+
+            starSpan.textContent = state.stars;
+
+            if (lv.type === 'choice') bindChoice(lv);
+            else if (lv.type === 'drag3') bindDrag3(lv);
+            else if (lv.type === 'level6') bindLevel6();
+
+            if (completed) {
+                const fb = document.getElementById('feedback');
+                fb.textContent = '✅ 本关已完成，继续前进吧！';
+                fb.className = 'feedback show';
+                document.getElementById('nextBtn').className = 'next-btn show';
+            }
+            updateTip(lv);
+        }
+
+        function renderIntro() {
+            const html = `
+            <div class="level-panel intro-screen">
+              <h1>🔬 碱金属光谱分析</h1>
+              <p class="subtitle">—— 钠原子能级重建之旅 ——</p>
+              <div class="story-box">
+                <p>📖 <strong>情景引入</strong></p>
+                <p style="margin-top:8px;">
+                  光谱学习小组在分析碱金属原子光谱时遇到了困难——他们无法理解钠原子为何会发出特定波长的光。
+                  作为小组的核心成员，你需要帮助他们 <strong>理清能级结构</strong>，<strong>掌握跃迁规则</strong>，
+                  最终 <strong>重建完整的发射光谱</strong>。
+                </p>
+                <p style="margin-top:10px;color:#8f9fc7;">
+                  🎯 你的任务：从电子组态出发，一步步构建钠原子的能级图，并绘制出四大特征光谱线系。
+                </p>
+              </div>
+              <div class="rules-grid">
+                <div class="rule-item">
+                  <span class="icon">📝</span>
+                  <div><span class="label">选择填空</span><br>第1关为选择题，考察基态电子组态</div>
+                </div>
+                <div class="rule-item">
+                  <span class="icon">🖱️</span>
+                  <div><span class="label">拖拽填充</span><br>第2关拖拽标签填入正确的能级位置</div>
+                </div>
+                <div class="rule-item">
+                  <span class="icon">⚡</span>
+                  <div><span class="label">跃迁定则</span><br>第3关选择正确的跃迁选择定则</div>
+                </div>
+                <div class="rule-item">
+                  <span class="icon">🌈</span>
+                  <div><span class="label">绘制光谱</span><br>第4关拖拽能级绘制四大光谱线系</div>
+                </div>
+              </div>
+              <div style="color:#8f9fc7;font-size:14px;margin-bottom:12px;">
+                ⭐ 每关首次正确可获得 <strong style="color:#ffd966;">3颗星</strong>，第二次正确可获得 <strong style="color:#ffd966;">1颗星</strong>
+              </div>
+              <button class="start-btn" onclick="startGame()">🚀 开始闯关</button>
+            </div>
+          `;
+            container.innerHTML = html;
+            tipEl.textContent = '💡 准备好了吗？点击"开始闯关"进入第一关！';
+        }
+
+        function startGame() {
+            state.gameStarted = true;
+            state.currentLevel = 0;
+            render();
+        }
+
+        function renderChoice(lv) {
+            let html = `<div class="options">`;
+            lv.options.forEach((o, i) => {
+                html += `<button class="option-btn" data-idx="${i}" data-correct="${o.correct}">${o.label}</button>`;
+            });
+            html += `</div>`;
+            return html;
+        }
+
+        function renderDrag3(lv) {
+            const filled = state.drag3.filled || {};
+            let html = `<div class="drag-area">`;
+            html += `<div class="tag-pool" id="tagPool3">`;
+            lv.tags.forEach(t => {
+                const used = Object.values(filled).includes(t);
+                if (!used) html += `<span class="tag" draggable="true" data-label="${t}">${t}</span>`;
+            });
+            html += `</div>`;
+            html += `<div class="grid-slots">`;
+            html +=
+                `<div class="slot-row"><span class="n-label"></span><span class="col-header">l=0(s)</span><span class="col-header">l=1(p)</span><span class="col-header">l=2(d)</span></div>`;
+            const ns = [3, 4, 5];
+            ns.forEach(n => {
+                html += `<div class="slot-row"><span class="n-label">n=${n}</span>`;
+                for (let l = 0; l < 3; l++) {
+                    const key = n + '-' + l;
+                    const val = filled[key] || '';
+                    const filledClass = val ? 'filled' : '';
+                    const extra = (n === 3 && l === 0) ? ' style="border-color:#5b7bc0;background:#1b2748;"' : '';
+                    html += `<div class="slot ${filledClass}" data-key="${key}" data-correct="${lv.slots.find(s=>s.id===key)?.correct||''}"${extra}>${val||''}</div>`;
+                }
+                html += `</div>`;
+            });
+            html += `</div></div>`;
+            return html;
+        }
+
+        function renderLevel6() {
+            return `
+            <div class="level6-container">
+              <div class="level6-canvas-wrapper">
+                <svg viewBox="0 0 560 500" id="svg6">
+                  <!-- 由JS绘制 -->
+                </svg>
+              </div>
+              <div class="series-legend">
+                <span><span class="dot" style="background:#ff6b6b;"></span> 主线系 nP→3S</span>
+                <span><span class="dot" style="background:#4ecdc4;"></span> 第一辅线系 nD→3P</span>
+                <span><span class="dot" style="background:#f9ca24;"></span> 第二辅线系 nS→3P</span>
+                <span><span class="dot" style="background:#a29bfe;"></span> 伯格曼线系 nF→3D</span>
+              </div>
+              <div class="level6-spectrum-area">
+                <h4>🌈 发射光谱</h4>
+                <div class="spectrum-canvas" id="spectrumCanvas"></div>
+                <div style="margin-top:6px;font-size:12px;color:#5a6f9a;text-align:center;">← 点击谱线高亮对应跃迁</div>
+              </div>
+              <div class="level6-tools">
+                <button class="btn-sm" onclick="clearLevel6()">🗑️ 清空连线</button>
+                <span class="conn-info">已连: <span id="connCount">0</span> 条</span>
+                <span class="conn-info" style="color:#ffd966;">目标: 10 条</span>
+                <span class="conn-info" id="dragHint" style="color:#ffd966;">从高能级拖到低能级</span>
+              </div>
+            </div>
+          `;
+        }
+
+        // ==================== 交互绑定 ====================
+        function bindChoice(lv) {
+            const btns = document.querySelectorAll('.option-btn');
+            const fb = document.getElementById('feedback');
+            const nextBtn = document.getElementById('nextBtn');
+            let answered = false;
+            btns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (answered || state.levelCompleted[state.currentLevel]) return;
+                    const isCorrect = this.dataset.correct === 'true';
+                    const attempt = state.levelAttempts[state.currentLevel] + 1;
+                    state.levelAttempts[state.currentLevel] = attempt;
+                    btns.forEach(b => b.disabled = true);
+                    if (isCorrect) {
+                        this.classList.add('correct');
+                        let starsGain = attempt === 1 ? 3 : (attempt === 2 ? 1 : 0);
+                        state.stars += starsGain;
+                        state.levelCompleted[state.currentLevel] = true;
+                        let msg = attempt === 1 ? lv.correctFeedback : lv.secondFeedback;
+                        fb.innerHTML = msg + ` <span class="stars-gain">+${starsGain}⭐</span>`;
+                        fb.className = 'feedback show';
+                        nextBtn.className = 'next-btn show';
+                        starSpan.textContent = state.stars;
+                    } else {
+                        this.classList.add('wrong');
+                        fb.textContent = lv.wrongFeedback;
+                        fb.className = 'feedback show';
+                        setTimeout(() => {
+                            this.classList.remove('wrong');
+                            btns.forEach(b => b.disabled = false);
+                            answered = false;
+                        }, 800);
+                    }
+                    answered = true;
+                });
+            });
+        }
+
+        function setupDragDrop(poolId, slotSelector, onDrop) {
+            const pool = document.getElementById(poolId);
+            if (!pool) return;
+            let dragEl = null;
+            pool.querySelectorAll('.tag').forEach(tag => {
+                tag.addEventListener('dragstart', function(e) {
+                    dragEl = this;
+                    this.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', this.dataset.label);
+                });
+                tag.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+            });
+            document.querySelectorAll(slotSelector).forEach(slot => {
+                slot.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('highlight');
+                });
+                slot.addEventListener('dragleave', function() {
+                    this.classList.remove('highlight');
+                });
+                slot.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('highlight');
+                    const label = e.dataTransfer.getData('text/plain');
+                    if (!label || !dragEl) return;
+                    const key = this.dataset.key;
+                    const correct = this.dataset.correct;
+                    if (!key) return;
+                    if (this.textContent.trim()) {
+                        showTip('这个位置已有能级，不能覆盖！', true);
+                        return;
+                    }
+                    if (correct === label) {
+                        this.textContent = label;
+                        this.classList.add('filled');
+                        onDrop(key, label);
+                        dragEl.remove();
+                        showTip('✅ 正确！', false);
+                        checkDragComplete();
+                    } else {
+                        showTip('❌ 位置不对，检查 n 和 l！', true);
+                        dragEl.classList.remove('dragging');
+                    }
+                    dragEl = null;
+                });
+            });
+        }
+
+        function bindDrag3(lv) {
+            state.drag3.filled = state.drag3.filled || {};
+            const onDrop = (key, label) => { state.drag3.filled[key] = label; };
+            setupDragDrop('tagPool3', '.slot[data-key]', onDrop);
+            const slot3s = document.querySelector('.slot[data-key="3-0"]');
+            if (slot3s && !slot3s.textContent.trim()) {
+                slot3s.textContent = '3S';
+                slot3s.classList.add('filled');
+                state.drag3.filled['3-0'] = '3S';
+            }
+        }
+
+        function checkDragComplete() {
+            const lv = LEVELS[state.currentLevel];
+            const filled = state.drag3.filled;
+            const slots = lv.slots;
+            const allFilled = slots.every(s => filled[s.id] === s.correct);
+            if (allFilled && !state.levelCompleted[state.currentLevel]) {
+                const attempt = state.levelAttempts[state.currentLevel] + 1;
+                state.levelAttempts[state.currentLevel] = attempt;
+                let starsGain = attempt === 1 ? 3 : (attempt === 2 ? 1 : 0);
+                state.stars += starsGain;
+                state.levelCompleted[state.currentLevel] = true;
+                const fb = document.getElementById('feedback');
+                const msg = attempt === 1 ? lv.correctFeedback : lv.secondFeedback;
+                fb.innerHTML = msg + ` <span class="stars-gain">+${starsGain}⭐</span>`;
+                fb.className = 'feedback show';
+                document.getElementById('nextBtn').className = 'next-btn show';
+                starSpan.textContent = state.stars;
+                showTip('🎉 全部正确！', false);
+            }
+        }
+
+        // ==================== 第4关 ====================
+        function bindLevel6() {
+            if (state.levelCompleted[3]) {
+                renderLevel6Complete();
+                return;
+            }
+            const svg = document.getElementById('svg6');
+            if (!svg) return;
+
+            let svgContent = '';
+            const colLabels = ['s (l=0)', 'p (l=1)', 'd (l=2)', 'f (l=3)'];
+            const colPositions = [120, 260, 400, 480];
+            colLabels.forEach((label, i) => {
+                const x = colPositions[i];
+                svgContent +=
+                    `<text x="${x}" y="34" text-anchor="middle" fill="#6a7fa8" font-size="13" font-family="sans-serif">${label}</text>`;
+            });
+            const ns = [5, 4, 3];
+            const nY = [70, 215, 420];
+            ns.forEach((n, i) => {
+                svgContent +=
+                    `<text x="50" y="${nY[i]+6}" text-anchor="middle" fill="#6a7fa8" font-size="14" font-weight="500">n=${n}</text>`;
+            });
+
+            LEVEL6_NODES.forEach((node) => {
+                const lineLen = 55;
+                const x1 = node.x - lineLen / 2;
+                const x2 = node.x + lineLen / 2;
+                const isDragFrom = state.dragFrom === node.id;
+                const strokeColor = isDragFrom ? '#ffd966' : '#7a8fc0';
+                const strokeWidth = isDragFrom ? 5 : 3;
+                svgContent +=
+                    `<line x1="${x1}" y1="${node.y}" x2="${x2}" y2="${node.y}" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-linecap="round" class="level-line" data-id="${node.id}" data-n="${node.n}" data-l="${node.l}"/>`;
+                svgContent +=
+                    `<text x="${node.x}" y="${node.y - 14}" text-anchor="middle" fill="#c8d6f5" font-size="12" font-weight="600" font-family="monospace">${node.id}</text>`;
+            });
+
+            svgContent += drawConnectionsSVG();
+
+            if (state.isDragging && state.dragFrom) {
+                const fromNode = LEVEL6_NODES.find(n => n.id === state.dragFrom);
+                if (fromNode) {
+                    const dx = state.dragCurrentX - fromNode.x;
+                    const dy = state.dragCurrentY - fromNode.y;
+                    const len = Math.sqrt(dx * dx + dy * dy);
+                    if (len > 10) {
+                        svgContent +=
+                            `<line x1="${fromNode.x}" y1="${fromNode.y}" x2="${state.dragCurrentX}" y2="${state.dragCurrentY}" stroke="#ffd966" stroke-width="2.5" stroke-dasharray="6,5" class="drag-preview"/>`;
+                        const angle = Math.atan2(dy, dx);
+                        const arrowLen = 12;
+                        const midRatio = 0.5;
+                        const ax = fromNode.x + dx * midRatio;
+                        const ay = fromNode.y + dy * midRatio;
+                        const a1 = angle + 2.2;
+                        const a2 = angle - 2.2;
+                        svgContent +=
+                            `<polygon points="${ax},${ay} ${ax + arrowLen * Math.cos(a1)},${ay + arrowLen * Math.sin(a1)} ${ax + arrowLen * Math.cos(a2)},${ay + arrowLen * Math.sin(a2)}" fill="#ffd966" opacity="0.7"/>`;
+                    }
+                    svgContent +=
+                        `<circle cx="${fromNode.x}" cy="${fromNode.y}" r="28" fill="none" stroke="#ffd966" stroke-width="2" stroke-dasharray="4,4" opacity="0.6" class="select-ring"/>`;
+                }
+            }
+
+            svg.innerHTML = svgContent;
+
+            const lines = svg.querySelectorAll('.level-line');
+            lines.forEach(line => {
+                line.addEventListener('mousedown', function(e) {
+                    if (state.levelCompleted[3]) return;
+                    const id = this.dataset.id;
+                    state.dragFrom = id;
+                    state.isDragging = true;
+                    const rect = svg.getBoundingClientRect();
+                    const scaleX = 560 / rect.width;
+                    const scaleY = 500 / rect.height;
+                    state.dragStartX = (e.clientX - rect.left) * scaleX;
+                    state.dragStartY = (e.clientY - rect.top) * scaleY;
+                    state.dragCurrentX = state.dragStartX;
+                    state.dragCurrentY = state.dragStartY;
+                    document.getElementById('dragHint').textContent = `拖拽中: ${id} → ?`;
+                    bindLevel6();
+                });
+
+                line.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    if (state.levelCompleted[3]) return;
+                    const touch = e.touches[0];
+                    const id = this.dataset.id;
+                    state.dragFrom = id;
+                    state.isDragging = true;
+                    const rect = svg.getBoundingClientRect();
+                    const scaleX = 560 / rect.width;
+                    const scaleY = 500 / rect.height;
+                    state.dragStartX = (touch.clientX - rect.left) * scaleX;
+                    state.dragStartY = (touch.clientY - rect.top) * scaleY;
+                    state.dragCurrentX = state.dragStartX;
+                    state.dragCurrentY = state.dragStartY;
+                    document.getElementById('dragHint').textContent = `拖拽中: ${id} → ?`;
+                    bindLevel6();
+                }, { passive: false });
+            });
+
+            const onMouseMove = function(e) {
+                if (!state.isDragging || !state.dragFrom) return;
+                const rect = svg.getBoundingClientRect();
+                const scaleX = 560 / rect.width;
+                const scaleY = 500 / rect.height;
+                state.dragCurrentX = (e.clientX - rect.left) * scaleX;
+                state.dragCurrentY = (e.clientY - rect.top) * scaleY;
+                let hoverId = null;
+                for (const n of LEVEL6_NODES) {
+                    const dx = n.x - state.dragCurrentX;
+                    const dy = n.y - state.dragCurrentY;
+                    if (dx * dx + dy * dy < 400) { hoverId = n.id; break; }
+                }
+                document.querySelectorAll('.level-line').forEach(el => {
+                    el.classList.remove('drag-hover');
+                    if (el.dataset.id === hoverId && hoverId !== state.dragFrom) {
+                        el.classList.add('drag-hover');
+                    }
+                });
+                bindLevel6();
+            };
+
+            const onMouseUp = function(e) {
+                if (!state.isDragging || !state.dragFrom) {
+                    state.isDragging = false;
+                    return;
+                }
+                const rect = svg.getBoundingClientRect();
+                const scaleX = 560 / rect.width;
+                const scaleY = 500 / rect.height;
+                const endX = (e.clientX - rect.left) * scaleX;
+                const endY = (e.clientY - rect.top) * scaleY;
+
+                let targetId = null;
+                for (const n of LEVEL6_NODES) {
+                    const dx = n.x - endX;
+                    const dy = n.y - endY;
+                    if (dx * dx + dy * dy < 400) { targetId = n.id; break; }
+                }
+
+                const fromId = state.dragFrom;
+                state.isDragging = false;
+                state.dragFrom = null;
+                document.getElementById('dragHint').textContent = '从高能级拖到低能级';
+
+                if (targetId && targetId !== fromId) {
+                    tryConnect(fromId, targetId);
+                } else {
+                    bindLevel6();
+                }
+                document.querySelectorAll('.level-line').forEach(el => el.classList.remove('drag-hover'));
+            };
+
+            const oldMove = svg._onMouseMove;
+            const oldUp = svg._onMouseUp;
+            if (oldMove) document.removeEventListener('mousemove', oldMove);
+            if (oldUp) document.removeEventListener('mouseup', oldUp);
+            svg._onMouseMove = onMouseMove;
+            svg._onMouseUp = onMouseUp;
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            const onTouchMove = function(e) {
+                e.preventDefault();
+                if (!state.isDragging || !state.dragFrom) return;
+                const touch = e.touches[0];
+                const rect = svg.getBoundingClientRect();
+                const scaleX = 560 / rect.width;
+                const scaleY = 500 / rect.height;
+                state.dragCurrentX = (touch.clientX - rect.left) * scaleX;
+                state.dragCurrentY = (touch.clientY - rect.top) * scaleY;
+                let hoverId = null;
+                for (const n of LEVEL6_NODES) {
+                    const dx = n.x - state.dragCurrentX;
+                    const dy = n.y - state.dragCurrentY;
+                    if (dx * dx + dy * dy < 400) { hoverId = n.id; break; }
+                }
+                document.querySelectorAll('.level-line').forEach(el => {
+                    el.classList.remove('drag-hover');
+                    if (el.dataset.id === hoverId && hoverId !== state.dragFrom) {
+                        el.classList.add('drag-hover');
+                    }
+                });
+                bindLevel6();
+            };
+
+            const onTouchEnd = function(e) {
+                e.preventDefault();
+                if (!state.isDragging || !state.dragFrom) {
+                    state.isDragging = false;
+                    return;
+                }
+                const touch = e.changedTouches[0];
+                const rect = svg.getBoundingClientRect();
+                const scaleX = 560 / rect.width;
+                const scaleY = 500 / rect.height;
+                const endX = (touch.clientX - rect.left) * scaleX;
+                const endY = (touch.clientY - rect.top) * scaleY;
+
+                let targetId = null;
+                for (const n of LEVEL6_NODES) {
+                    const dx = n.x - endX;
+                    const dy = n.y - endY;
+                    if (dx * dx + dy * dy < 400) { targetId = n.id; break; }
+                }
+
+                const fromId = state.dragFrom;
+                state.isDragging = false;
+                state.dragFrom = null;
+                document.getElementById('dragHint').textContent = '从高能级拖到低能级';
+
+                if (targetId && targetId !== fromId) {
+                    tryConnect(fromId, targetId);
+                } else {
+                    bindLevel6();
+                }
+                document.querySelectorAll('.level-line').forEach(el => el.classList.remove('drag-hover'));
+            };
+
+            const oldTouchMove = svg._onTouchMove;
+            const oldTouchEnd = svg._onTouchEnd;
+            if (oldTouchMove) document.removeEventListener('touchmove', oldTouchMove);
+            if (oldTouchEnd) document.removeEventListener('touchend', oldTouchEnd);
+            svg._onTouchMove = onTouchMove;
+            svg._onTouchEnd = onTouchEnd;
+            document.addEventListener('touchmove', onTouchMove, { passive: false });
+            document.addEventListener('touchend', onTouchEnd, { passive: false });
+
+            renderSpectrum();
+            updateConnCount();
+            checkLevel6Complete();
+        }
+
+        function drawConnectionsSVG() {
+            let html = '';
+            state.connections.forEach((c, i) => {
+                const from = LEVEL6_NODES.find(n => n.id === c.from);
+                const to = LEVEL6_NODES.find(n => n.id === c.to);
+                if (!from || !to) return;
+                const color = c.color || '#ff6b6b';
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                if (len < 1) return;
+                const offset = 8;
+                const ratio = offset / len;
+                const x1 = from.x + dx * ratio;
+                const y1 = from.y + dy * ratio;
+                const x2 = to.x - dx * ratio;
+                const y2 = to.y - dy * ratio;
+
+                html +=
+                    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" class="conn-line" data-from="${c.from}" data-to="${c.to}" style="stroke:${color};"/>`;
+
+                const arrowLen = 12;
+                const angle = Math.atan2(dy, dx);
+                const midRatio = 0.55;
+                const ax = from.x + dx * midRatio;
+                const ay = from.y + dy * midRatio;
+                const a1 = angle + 2.2;
+                const a2 = angle - 2.2;
+                html += `<polygon points="${ax},${ay} ${ax + arrowLen * Math.cos(a1)},${ay + arrowLen * Math.sin(a1)} ${ax + arrowLen * Math.cos(a2)},${ay + arrowLen * Math.sin(a2)}" fill="${color}" class="conn-arrow" data-from="${c.from}" data-to="${c.to}" style="fill:${color};"/>`;
+            });
+            return html;
+        }
+
+        function tryConnect(fromId, toId) {
+            if (state.levelCompleted[3]) return;
+            const from = LEVEL6_NODES.find(n => n.id === fromId);
+            const to = LEVEL6_NODES.find(n => n.id === toId);
+            if (!from || !to) return;
+
+            // 只能从高能级（上方，y值小）跃迁到低能级（下方，y值大）
+            if (from.y >= to.y) {
+                showTip('⚠️ 只能从高能级（上方）跃迁到低能级（下方）！', true);
+                return;
+            }
+
+            // 检查Δl = ±1
+            const dl = Math.abs(from.l - to.l);
+            if (dl !== 1) {
+                showTip('❌ 违反 Δl=±1 定则！', true);
+                return;
+            }
+
+            // 检查是否在允许的跃迁列表中
+            const allowed = ALLOWED_TRANSITIONS.find(t => t.from === fromId && t.to === toId);
+            if (!allowed) {
+                showTip('❌ 这不是碱金属光谱中的标准线系跃迁！', true);
+                return;
+            }
+
+            const exist = state.connections.some(c => (c.from === fromId && c.to === toId));
+            if (exist) {
+                showTip('⏳ 这条跃迁已经连过了', true);
+                return;
+            }
+
+            const color = SERIES_COLORS[allowed.series] || '#ff6b6b';
+            state.connections.push({ from: fromId, to: toId, color, series: allowed.series });
+
+            // 计算光谱位置
+            const energy = (from.n - to.n) * 0.8 + (from.l - to.l) * 0.05;
+            const xPos = 20 + energy * 45;
+            state.spectrumLines.push({
+                from: fromId,
+                to: toId,
+                color: color,
+                x: Math.min(Math.max(xPos, 15), 350),
+                series: allowed.series
+            });
+
+            bindLevel6();
+            renderSpectrum();
+            updateConnCount();
+            checkLevel6Complete();
+            showTip(`✅ ${fromId} → ${toId}  (${allowed.series}) 跃迁成功！`, false);
+        }
+
+        function renderSpectrum() {
+            const canvas = document.getElementById('spectrumCanvas');
+            if (!canvas) return;
+            canvas.innerHTML = '';
+            const lines = state.spectrumLines;
+            if (lines.length === 0) {
+                canvas.innerHTML =
+                    '<div style="color:#3a4a70;text-align:center;padding-top:40px;font-size:14px;">连线后光谱自动生成</div>';
+                return;
+            }
+            const xs = lines.map(l => l.x);
+            const minX = Math.min(...xs) - 20;
+            const maxX = Math.max(...xs) + 20;
+            const range = maxX - minX || 1;
+
+            lines.forEach((line, i) => {
+                const div = document.createElement('div');
+                div.className = 'spectrum-line';
+                const xNorm = (line.x - minX) / range;
+                const left = 10 + xNorm * (canvas.clientWidth - 40 || 180);
+                const height = 40 + Math.random() * 30;
+                div.style.left = left + 'px';
+                div.style.height = height + 'px';
+                div.style.background = line.color;
+                div.style.width = '7px';
+                div.style.borderRadius = '3px';
+                div.style.boxShadow = `0 0 18px ${line.color}66`;
+                div.dataset.index = i;
+                div.dataset.from = line.from;
+                div.dataset.to = line.to;
+                div.title = `${line.from} → ${line.to} (${line.series || '跃迁'})`;
+
+                div.addEventListener('click', function() {
+                    highlightTransition(this.dataset.from, this.dataset.to);
+                    this.classList.add('active-pulse');
+                    setTimeout(() => this.classList.remove('active-pulse'), 2100);
+                });
+
+                canvas.appendChild(div);
+            });
+
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'spectrum-label';
+            labelDiv.innerHTML = `<span>低能</span><span>高能</span>`;
+            canvas.appendChild(labelDiv);
+        }
+
+        function highlightTransition(from, to) {
+            const svg = document.getElementById('svg6');
+            if (!svg) return;
+            svg.querySelectorAll('.conn-line').forEach(el => {
+                if (el.dataset.from === from && el.dataset.to === to) {
+                    el.classList.add('highlight');
+                } else {
+                    el.classList.remove('highlight');
+                }
+            });
+            svg.querySelectorAll('.conn-arrow').forEach(el => {
+                if (el.dataset.from === from && el.dataset.to === to) {
+                    el.style.filter = 'drop-shadow(0 0 12px #ffd966)';
+                } else {
+                    el.style.filter = '';
+                }
+            });
+            svg.querySelectorAll('.level-line').forEach(el => {
+                if (el.dataset.id === from || el.dataset.id === to) {
+                    el.style.stroke = '#ffd966';
+                    el.style.strokeWidth = '5';
+                    el.style.filter = 'drop-shadow(0 0 12px #ffd966)';
+                } else {
+                    el.style.stroke = '#7a8fc0';
+                    el.style.strokeWidth = '3';
+                    el.style.filter = '';
+                }
+            });
+        }
+
+        function updateConnCount() {
+            const el = document.getElementById('connCount');
+            if (el) el.textContent = state.connections.length;
+        }
+
+        function checkLevel6Complete() {
+            if (state.levelCompleted[3]) return;
+            const target = 10;
+            if (state.connections.length >= target) {
+                state.levelCompleted[3] = true;
+                state.stars += 5;
+                starSpan.textContent = state.stars;
+                const fb = document.getElementById('feedback');
+                fb.innerHTML = '🌟🌟🌟🌟🌟 光谱大师！完整绘制碱金属四大线系！解锁称号 🏆 +5⭐';
+                fb.className = 'feedback show';
+                document.getElementById('nextBtn').className = 'next-btn show';
+                showTip('🎉 恭喜通关！你是光谱大师！', false);
+            } else {
+                const fb = document.getElementById('feedback');
+                if (state.connections.length >= 6) {
+                    fb.innerHTML = `🌟 已连 ${state.connections.length} 条，再连 ${target-state.connections.length} 条就完整了！`;
+                    fb.className = 'feedback show';
+                } else {
+                    fb.innerHTML = `💪 已连 ${state.connections.length} 条，继续绘制光谱线系！`;
+                    fb.className = 'feedback show';
+                }
+            }
+        }
+
+        function clearLevel6() {
+            if (state.levelCompleted[3]) return;
+            state.connections = [];
+            state.spectrumLines = [];
+            state.isDragging = false;
+            state.dragFrom = null;
+            document.getElementById('dragHint').textContent = '从高能级拖到低能级';
+            bindLevel6();
+            renderSpectrum();
+            updateConnCount();
+            const fb = document.getElementById('feedback');
+            fb.textContent = '🗑️ 已清空，重新绘制光谱线系吧！';
+            fb.className = 'feedback show';
+        }
+
+        function renderLevel6Complete() {
+            const fb = document.getElementById('feedback');
+            if (fb) {
+                fb.innerHTML = '🏆 本关已完美通关！你是光谱大师！';
+                fb.className = 'feedback show';
+            }
+            document.getElementById('nextBtn').className = 'next-btn show';
+        }
+
+        // ==================== 通用函数 ====================
+        function goNext() {
+            if (state.currentLevel < 3) {
+                state.currentLevel++;
+                state.isDragging = false;
+                state.dragFrom = null;
+                render();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                renderFinal();
+            }
+        }
+
+        function renderFinal() {
+            const total = state.stars;
+            let title, sub, emoji;
+            if (total >= 18) { title = '🌟 光谱传奇';
+                sub = '你对钠原子能级了如指掌！';
+                emoji = '🏆🏆🏆'; } else if (total >= 12) { title = '🏆 光谱大师';
+                sub = '完美重建，导师向你致敬！';
+                emoji = '🌟🎉'; } else if (total >= 7) { title = '📖 光谱学徒';
+                sub = '继续练习，你会更强大！';
+                emoji = '💪📚'; } else { title = '🔄 光谱新手';
+                sub = '每一步都是积累，再试一次！';
+                emoji = '🌱'; }
+            container.innerHTML = `
+            <div class="level-panel final-screen">
+              <div class="big-stars">${emoji}</div>
+              <h2>${title}</h2>
+              <p class="sub">${sub}</p>
+              <p style="margin:16px 0;font-size:20px;">⭐ 总星数：${total}</p>
+              <button class="next-btn show" onclick="resetGame()" style="display:inline-block;">🔄 重新挑战</button>
+            </div>
+          `;
+            tipEl.textContent = '🎓 塞曼效应预习：加上外磁场，每条谱线都会分裂！';
+        }
+
+        function resetGame() {
+            state.currentLevel = -1;
+            state.stars = 0;
+            state.levelAttempts = [0, 0, 0, 0];
+            state.levelCompleted = [false, false, false, false];
+            state.drag3.filled = {};
+            state.connections = [];
+            state.spectrumLines = [];
+            state.isDragging = false;
+            state.dragFrom = null;
+            state.gameStarted = false;
+            render();
+            tipEl.textContent = '💡 导师笔记：每一步都是构建光谱的关键。';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showTip(msg, isError) {
+            tipEl.innerHTML = (isError ? '⚠️ ' : '💡 ') + msg;
+            tipEl.style.borderLeftColor = isError ? '#d45a6a' : '#4e70b0';
+        }
+
+        function updateTip(lv) {
+            const tips = [
+                '💡 提示：钠原子最外层只有1个电子，是碱金属。',
+                '💡 提示：能级顺序：3S<3P<4S≈3D<4P<5S≈4D<5P<4F<5D<5F。',
+                '💡 提示：电偶极跃迁要求 Δl = ±1，Δj = 0, ±1 (j=0→0除外)。',
+                '💡 提示：四大线系：主线系(nP→3S) | 第一辅线系(nD→3P) | 第二辅线系(nS→3P) | 伯格曼线系(nF→3D)',
+            ];
+            if (lv && lv.id < tips.length) {
+                tipEl.innerHTML = tips[lv.id];
+                tipEl.style.borderLeftColor = '#4e70b0';
+            }
+        }
+
+        // ==================== 启动 ====================
+        render();
+    </script>
+
+</body>
+</html>

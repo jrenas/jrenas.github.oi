@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塞曼效应 · 光谱解密闯关</title>
+    <style>
+        /* ===== 样式保持不变 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(145deg, #0b1a2e 0%, #1a2f3f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .game-container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 30px;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.7), inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .story-header {
+            background: rgba(255, 215, 0, 0.08);
+            border-left: 6px solid #ffc857;
+            padding: 18px 24px;
+            border-radius: 20px;
+            margin-bottom: 28px;
+            color: #e0e9f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .story-header::before {
+            content: "🧪";
+            font-size: 28px;
+            margin-right: 14px;
+        }
+        .story-header strong {
+            color: #ffc857;
+            font-weight: 600;
+        }
+        .story-header small {
+            display: block;
+            margin-top: 8px;
+            color: #a0b8cc;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        #levelTitle {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 8px 0 4px 0;
+            letter-spacing: 1px;
+        }
+        .badge-level {
+            background: #2a4b66;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            color: #b4d0e5;
+            display: inline-block;
+            margin-bottom: 6px;
+        }
+        .main-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 32px;
+            padding: 26px 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 420px;
+            transition: all 0.2s;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .step-badge {
+            background: #1e3a4f;
+            padding: 6px 20px;
+            border-radius: 40px;
+            color: #aad0ff;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border: 1px solid #2f5a77;
+        }
+        .timer-box {
+            background: #0d1f2b;
+            padding: 6px 22px;
+            border-radius: 60px;
+            color: #7fdbff;
+            font-family: monospace;
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            border: 1px solid #2b5f7a;
+            box-shadow: 0 0 15px rgba(0, 180, 255, 0.1);
+        }
+        .timer-box.warning {
+            color: #ffb347;
+            border-color: #ffb347;
+            animation: pulse 0.6s infinite alternate;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0.6; transform: scale(0.97); }
+        }
+        .question-area {
+            color: #d4e4f0;
+            font-size: 1.15rem;
+            line-height: 1.7;
+            position: relative;
+        }
+        .question-area .highlight {
+            color: #ffd966;
+            font-weight: 600;
+        }
+        .level-group {
+            background: #0a1a26;
+            border-radius: 18px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            border-left: 4px solid #3d8bb0;
+        }
+        .energy-levels {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            flex-wrap: wrap;
+            background: #07131d;
+            border-radius: 20px;
+            padding: 18px;
+            margin: 12px 0 18px 0;
+            border: 1px dashed #3d6f8a;
+        }
+        .level-card {
+            background: #122b3b;
+            padding: 12px 24px;
+            border-radius: 16px;
+            text-align: center;
+            min-width: 120px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .level-card .label {
+            color: #9bbdd4;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .level-card .symbol {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 4px 0;
+        }
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 18px 0 8px 0;
+        }
+        .opt-btn {
+            background: #1d3b4e;
+            border: 2px solid #2b5775;
+            color: #d6eaff;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 4px 0 #0a1c28;
+        }
+        .opt-btn:hover {
+            transform: translateY(-2px);
+            background: #285772;
+            border-color: #5a9bc7;
+        }
+        .opt-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .opt-btn.selected-correct {
+            background: #1f8b4c;
+            border-color: #5ce09a;
+            box-shadow: 0 0 20px #1f8b4c77;
+        }
+        .opt-btn.selected-wrong {
+            background: #8b2f3f;
+            border-color: #e05c5c;
+            animation: shake 0.3s;
+        }
+        .opt-btn.disabled-btn {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.6);
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-12px); }
+            50% { transform: translateX(12px); }
+            75% { transform: translateX(-6px); }
+            100% { transform: translateX(0); }
+        }
+        .input-answer {
+            background: #0f2738;
+            border: 2px solid #2b5f7a;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            width: 200px;
+            outline: none;
+            transition: 0.2s;
+            font-family: monospace;
+        }
+        .input-answer:focus {
+            border-color: #6bb8ff;
+            box-shadow: 0 0 20px #0066ff33;
+        }
+        .action-btn {
+            background: #e8b84b;
+            border: none;
+            color: #1a2f3f;
+            font-weight: 700;
+            padding: 12px 36px;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 6px 0 #8f6e2a;
+            margin: 8px 4px;
+        }
+        .action-btn:hover {
+            transform: translateY(-3px);
+            background: #fad06a;
+        }
+        .action-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+        .action-btn.secondary {
+            background: #3c6e8c;
+            box-shadow: 0 6px 0 #1e4057;
+            color: white;
+        }
+        .action-btn.secondary:hover {
+            background: #5293b8;
+        }
+        .action-btn:disabled {
+            opacity: 0.4;
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #1a1a1a;
+            pointer-events: none;
+        }
+        .feedback-msg {
+            margin: 18px 0 6px 0;
+            padding: 14px 20px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 1.1rem;
+            background: #0d1f2b;
+            border-left: 6px solid #5f8aa8;
+            color: #c8dce8;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+        }
+        .feedback-msg.success {
+            border-color: #5ce09a;
+            background: #0e2f24;
+            color: #b3f0d0;
+        }
+        .feedback-msg.fail {
+            border-color: #e05c5c;
+            background: #2f1a1f;
+            color: #f0b3b3;
+        }
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .start-screen {
+            text-align: center;
+            padding: 20px 10px;
+        }
+        .start-screen h2 {
+            font-size: 2.4rem;
+            color: #ffc857;
+            margin-bottom: 16px;
+            text-shadow: 0 0 30px rgba(255,200,87,0.3);
+        }
+        .start-screen .rules-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 28px;
+            padding: 24px 30px;
+            text-align: left;
+            margin: 20px 0;
+            border: 1px solid #3d6f8a;
+        }
+        .start-screen .rules-box li {
+            margin: 10px 0;
+            line-height: 1.8;
+            color: #c8dce8;
+            list-style: none;
+        }
+        .start-screen .rules-box li::before {
+            content: "▸ ";
+            color: #ffc857;
+            font-weight: bold;
+        }
+        .start-screen .start-btn {
+            background: #f7d44a;
+            color: #1a2f3f;
+            font-size: 1.8rem;
+            padding: 18px 60px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            box-shadow: 0 8px 0 #8f6e2a;
+            cursor: pointer;
+            transition: 0.15s;
+            margin-top: 20px;
+        }
+        .start-screen .start-btn:hover {
+            transform: translateY(-4px);
+            background: #ffe074;
+        }
+        .start-screen .start-btn:active {
+            transform: translateY(8px);
+            box-shadow: none;
+        }
+        @media (max-width: 700px) {
+            .game-container { padding: 16px; }
+            .level-card { min-width: 80px; padding: 10px; }
+            .level-card .symbol { font-size: 1.3rem; }
+            .timer-box { font-size: 1.2rem; padding: 4px 16px; }
+            .start-screen h2 { font-size: 1.8rem; }
+            .start-screen .start-btn { font-size: 1.4rem; padding: 14px 40px; }
+        }
+        #zeemanCanvas {
+            width: 100%;
+            height: auto;
+            background: #0a1a26;
+            border-radius: 16px;
+            border: 1px solid #2b5f7a;
+            display: block;
+            cursor: pointer;
+        }
+        .interact-tip {
+            color: #aad0ff;
+            font-size: 0.95rem;
+            margin: 8px 0 12px 0;
+            padding: 8px 16px;
+            background: #0f2738;
+            border-radius: 40px;
+            display: inline-block;
+            border: 1px solid #2b5f7a;
+        }
+        #errorClearBtn { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="app">
+    <div class="story-header">
+        <div class="badge-level">📖 情景 · 光谱实验室</div>
+        <div id="levelTitle">破解非单态谱线的秘密</div>
+        <small>🔍 研究员原老师留下了一条 <strong>³P₂ → ³S₁</strong> 的谱线，磁场中发生了劈裂，但他来不及分析就出差了。请你用塞曼效应的知识，帮他完成这份报告！</small>
+    </div>
+
+    <div class="main-panel" id="mainPanel">
+        <div class="step-indicator">
+            <span class="step-badge" id="stepBadge">⚡ 准备开始</span>
+            <div class="timer-box" id="timerDisplay">⏳ --</div>
+        </div>
+        <div id="questionContent" class="question-area"></div>
+        <div class="feedback-msg" id="feedbackMsg">💡 欢迎来到光谱实验室！点击下方"开始闯关"按钮。 </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px;">
+            <button class="action-btn" id="confirmBtn" disabled>✅ 确认回答</button>
+            <button class="action-btn secondary" id="nextBtn" style="background:#4a8bb7; box-shadow:0 6px 0 #1e4f6e;">🚀 开始闯关</button>
+            <button class="action-btn secondary" id="resetBtn" style="background:#4a5f6e; box-shadow:0 6px 0 #2a3b47; display:none;">🔄 重置当前</button>
+        </div>
+    </div>
+</div>
+
+<div class="confetti-container" id="confettiBox"></div>
+
+<script>
+    // ==================== 物理参数 ====================
+    const LEVELS = {
+        upper: { name: '上能级 (³P₂)', L: 1, S: 1, J: 2, g: 1.5, label: 'A' },
+        lower: { name: '下能级 (³S₁)', L: 0, S: 1, J: 1, g: 2, label: 'B' }
+    };
+
+    function computeMJ(J) {
+        const mj = [];
+        for (let m = -J; m <= J; m += 1) mj.push(m);
+        return mj;
+    }
+    const mjA = computeMJ(LEVELS.upper.J);
+    const mjB = computeMJ(LEVELS.lower.J);
+    const mjgA = mjA.map(m => m * LEVELS.upper.g);
+    const mjgB = mjB.map(m => m * LEVELS.lower.g);
+
+    function sortByEnergy(mjArray, mjgArray) {
+        const combined = mjArray.map((mj, idx) => ({ mj, mjg: mjgArray[idx] }));
+        combined.sort((a, b) => b.mjg - a.mjg);
+        return combined;
+    }
+    const upperSorted = sortByEnergy(mjA, mjgA);
+    const lowerSorted = sortByEnergy(mjB, mjgB);
+
+    function getValidTransitions() {
+        const trans = [];
+        for (let a of mjA) {
+            for (let b of mjB) {
+                const delta = a - b;
+                if (delta === 0 || delta === 1 || delta === -1) {
+                    trans.push({ from: a, to: b, delta });
+                }
+            }
+        }
+        return trans;
+    }
+    const VALID_TRANS = getValidTransitions();
+
+    const transitionDetails = VALID_TRANS.map(t => {
+        const fromMg = mjgA[mjA.indexOf(t.from)];
+        const toMg = mjgB[mjB.indexOf(t.to)];
+        const deltaMg = fromMg - toMg;
+        let pol = '';
+        if (t.delta === 1) pol = 'σ⁺';
+        else if (t.delta === -1) pol = 'σ⁻';
+        else pol = 'π';
+        return { ...t, fromMg, toMg, deltaMg, pol };
+    });
+
+    // ==================== 游戏状态 ====================
+    let state = {
+        step: 0,
+        timer: 10,
+        timerInterval: null,
+        timerActive: false,
+        answers: {
+            lsj: null,
+            gFactor: null,
+            splitCount: null,
+            mjList: null,
+            mjgProduct: null,
+        },
+        gameFinished: false,
+    };
+
+    // DOM 引用
+    const stepBadge = document.getElementById('stepBadge');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const questionContent = document.getElementById('questionContent');
+    const feedbackMsg = document.getElementById('feedbackMsg');
+    const confirmBtn = document.getElementById('confirmBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const confettiBox = document.getElementById('confettiBox');
+
+    // ==================== 辅助函数 ====================
+    function renderLevelCards() {
+        return `
+            <div class="energy-levels">
+                <div class="level-card">
+                    <div class="label">⬆️ 上能级 A</div>
+                    <div class="symbol">³P₂</div>
+                </div>
+                <div class="level-card">
+                    <div class="label">⬇️ 下能级 B</div>
+                    <div class="symbol">³S₁</div>
+                </div>
+            </div>
+        `;
+    }
+
+    function showFeedback(text, type = 'info') {
+        feedbackMsg.textContent = text;
+        feedbackMsg.className = 'feedback-msg';
+        if (type === 'success') feedbackMsg.classList.add('success');
+        else if (type === 'fail') feedbackMsg.classList.add('fail');
+    }
+
+    function fireConfetti() {
+        const box = confettiBox;
+        box.innerHTML = '';
+        const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#ffe66d', '#a29bfe', '#fd79a8', '#00b894'];
+        for (let i = 0; i < 80; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti';
+            const size = 6 + Math.random() * 10;
+            const left = Math.random() * 100;
+            const delay = Math.random() * 1.2;
+            const duration = 1.8 + Math.random() * 2;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const rotate = Math.random() * 360;
+            el.style.cssText = `
+                left: ${left}%;
+                width: ${size}px; height: ${size * 0.6}px;
+                background: ${color};
+                border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                animation-duration: ${duration}s;
+                animation-delay: ${delay}s;
+                transform: rotate(${rotate}deg);
+            `;
+            box.appendChild(el);
+        }
+        setTimeout(() => { box.innerHTML = ''; }, 4000);
+    }
+
+    function clearTimer() {
+        if (state.timerInterval) {
+            clearInterval(state.timerInterval);
+            state.timerInterval = null;
+        }
+        state.timerActive = false;
+        timerDisplay.classList.remove('warning');
+    }
+
+    function startTimer(seconds, onEnd) {
+        clearTimer();
+        state.timer = seconds;
+        timerDisplay.textContent = `⏳ ${seconds}s`;
+        timerDisplay.classList.remove('warning');
+        state.timerActive = true;
+        state.timerInterval = setInterval(() => {
+            state.timer -= 1;
+            timerDisplay.textContent = `⏳ ${state.timer}s`;
+            if (state.timer <= 3) timerDisplay.classList.add('warning');
+            if (state.timer <= 0) {
+                clearTimer();
+                timerDisplay.textContent = `⌛ 时间到！`;
+                if (onEnd) onEnd();
+            }
+        }, 1000);
+    }
+
+    function normalizeInput(str) {
+        if (!str) return '';
+        str = str.replace(/[０-９]/g, function(ch) {
+            return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0);
+        });
+        str = str.replace(/，/g, ',');
+        str = str.replace(/\s/g, '');
+        return str;
+    }
+
+    function parseNumeric(str) {
+        if (typeof str === 'string') {
+            str = str.trim();
+            if (str.includes('/')) {
+                const parts = str.split('/');
+                if (parts.length === 2) {
+                    const num = parseFloat(parts[0]);
+                    const den = parseFloat(parts[1]);
+                    if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                        return num / den;
+                    }
+                }
+            }
+            return parseFloat(str);
+        }
+        return str;
+    }
+
+    // ---- 检查函数（前五关） ----
+    function checkStep1(selected) {
+        const correct = (selected.upperL === 1 && selected.upperS === 1 && selected.upperJ === 2 &&
+            selected.lowerL === 0 && selected.lowerS === 1 && selected.lowerJ === 1);
+        if (!correct) {
+            showFeedback('❌ 正确答案是：上能级 (L=1, S=1, J=2)，下能级 (L=0, S=1, J=1)。再选一次！', 'fail');
+        }
+        return correct;
+    }
+
+    function checkStep2(gUpper, gLower) {
+        const gu = parseNumeric(gUpper);
+        const gl = parseNumeric(gLower);
+        if (isNaN(gu) || isNaN(gl)) {
+            showFeedback('请输入有效的数字！', 'fail');
+            return false;
+        }
+        const ok = (Math.abs(gu - 1.5) < 0.01 && Math.abs(gl - 2.0) < 0.01);
+        if (!ok) {
+            showFeedback(`❌ 正确答案：g_A = 1.5 (即 3/2)，g_B = 2.0。你输入的是 ${gUpper} 和 ${gLower}，再算算公式！`, 'fail');
+        }
+        return ok;
+    }
+
+    function checkStep3(upperCount, lowerCount) {
+        const ok = (upperCount === 5 && lowerCount === 3);
+        if (!ok) {
+            showFeedback(`❌ 正确答案：上能级 5 条，下能级 3 条。你输入的是 ${upperCount} 和 ${lowerCount}，再想想 2J+1。`, 'fail');
+        }
+        return ok;
+    }
+
+    // ========== 第四关：M_J 从大到小 ==========
+    function checkStep4(mjUpperStr, mjLowerStr) {
+        const u = mjUpperStr.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        const l = mjLowerStr.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+        if (u.length !== 5 || l.length !== 3) {
+            showFeedback('❌ 正确答案：上能级 2,1,0,-1,-2；下能级 1,0,-1。请检查数量和格式（按从大到小排列，参考示例 2,1,0,-1,2）。', 'fail');
+            return false;
+        }
+        const correctU = [2, 1, 0, -1, -2];
+        const correctL = [1, 0, -1];
+        const ok = u.every((v, i) => v === correctU[i]) && l.every((v, i) => v === correctL[i]);
+        if (!ok) {
+            showFeedback('❌ 正确答案：上能级 2,1,0,-1,-2；下能级 1,0,-1。请按从大到小排列（示例 2,1,0,-1,2）。', 'fail');
+        }
+        return ok;
+    }
+
+    // ========== 第五关：M_J·g 从大到小，错误反馈加入格式示例 ==========
+    function checkStep5(mjgUpperStr, mjgLowerStr) {
+        const uRaw = mjgUpperStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const lRaw = mjgLowerStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        if (uRaw.length !== 5 || lRaw.length !== 3) {
+            showFeedback('❌ 正确答案：上能级 3,1.5,0,-1.5,-3；下能级 2,0,-2。请检查数量和格式（按从大到小排列，参考示例 2,1,0,-1,2）。', 'fail');
+            return false;
+        }
+        const u = uRaw.map(s => parseNumeric(s));
+        const l = lRaw.map(s => parseNumeric(s));
+        if (u.some(isNaN) || l.some(isNaN)) {
+            showFeedback('❌ 请确保所有项都是有效数字（可用分数，如 3/2），并按从大到小排列（示例 2,1,0,-1,2）。', 'fail');
+            return false;
+        }
+        const correctU = [3, 1.5, 0, -1.5, -3];
+        const correctL = [2, 0, -2];
+        const ok = u.every((v, i) => Math.abs(v - correctU[i]) < 0.01) &&
+            l.every((v, i) => Math.abs(v - correctL[i]) < 0.01);
+        if (!ok) {
+            showFeedback('❌ 正确答案：上能级 3,1.5,0,-1.5,-3；下能级 2,0,-2。请按从大到小排列（格式参考上能级如 2,1,0,-1,2）。', 'fail');
+        }
+        return ok;
+    }
+
+    // ==================== 第6关：自定义配对 ====================
+    const CUSTOM_PAIRS = [
+        { upperIdx: 4, lowerIdx: 2 },
+        { upperIdx: 3, lowerIdx: 1 },
+        { upperIdx: 2, lowerIdx: 0 },
+        { upperIdx: 3, lowerIdx: 2 },
+        { upperIdx: 2, lowerIdx: 1 },
+        { upperIdx: 1, lowerIdx: 0 },
+        { upperIdx: 2, lowerIdx: 2 },
+        { upperIdx: 1, lowerIdx: 1 },
+        { upperIdx: 0, lowerIdx: 0 }
+    ];
+
+    const CUSTOM_DELTA_LABELS = [-2.00, -1.50, -1.00, -0.50, 0.00, 0.50, 1.00, 1.50, 2.00];
+
+    // ==================== 第6关绘图函数 ====================
+    function drawZeemanDiagram(ctx, width, height) {
+        ctx.clearRect(0, 0, width, height);
+
+        const leftOffset = 90;
+        const leftRatio = 0.28;
+        const rightRatio = 0.72;
+        const leftWidth = width * leftRatio;
+        const rightWidth = width * rightRatio;
+        const leftStart = leftOffset;
+        const rightStart = leftStart + leftWidth;
+
+        const topMargin = 30;
+        const bottomMargin = 70;
+        const midY = height / 2;
+        const gapBetweenLevels = 20;
+
+        const colorUpper = '#4a9eff';
+        const colorLower = '#ff6b6b';
+        const colorUpperLeft = '#4a9eff';
+        const colorLowerLeft = '#ff6b6b';
+
+        const upperMjg = upperSorted.map(item => item.mjg);
+        const lowerMjg = lowerSorted.map(item => item.mjg);
+        const upperMj = upperSorted.map(item => item.mj);
+        const lowerMj = lowerSorted.map(item => item.mj);
+
+        const maxUpper = 3, minUpper = -3;
+        const maxLower = 2, minLower = -2;
+        const upperYTop = topMargin;
+        const upperYBottom = midY - gapBetweenLevels;
+        const lowerYTop = midY + gapBetweenLevels;
+        const lowerYBottom = height - bottomMargin;
+
+        function mapUpper(value) {
+            return upperYTop + (maxUpper - value) / (maxUpper - minUpper) * (upperYBottom - upperYTop);
+        }
+        function mapLower(value) {
+            return lowerYTop + (maxLower - value) / (maxLower - minLower) * (lowerYBottom - lowerYTop);
+        }
+
+        const upperY = upperMjg.map(v => mapUpper(v));
+        const lowerY = lowerMjg.map(v => mapLower(v));
+
+        const upperZeroIdx = upperMj.indexOf(0);
+        const lowerZeroIdx = lowerMj.indexOf(0);
+        const upperZeroY = upperY[upperZeroIdx];
+        const lowerZeroY = lowerY[lowerZeroIdx];
+
+        const leftLineLen = leftWidth * 0.45;
+        const leftLineStartX = leftStart + 10;
+        const leftLineEndX = leftLineStartX + leftLineLen;
+
+        const rightLineLen = rightWidth * 0.72;
+        const rightLineStartX = leftLineEndX + 20;
+        const rightLineEndX = rightLineStartX + rightLineLen;
+
+        const dashCount = CUSTOM_PAIRS.length;
+        const xLeftDash = rightLineStartX + 15;
+        const xRightDash = rightLineEndX - 15;
+        const stepX = (xRightDash - xLeftDash) / (dashCount - 1);
+
+        const dashInfo = [];
+
+        CUSTOM_PAIRS.forEach((pair, idx) => {
+            const upperIdx = pair.upperIdx;
+            const lowerIdx = pair.lowerIdx;
+            const upperMjVal = upperMj[upperIdx];
+            const lowerMjVal = lowerMj[lowerIdx];
+            const realDelta = mjgA[upperIdx] - mjgB[lowerIdx];
+            const displayDelta = CUSTOM_DELTA_LABELS[idx];
+            const deltaMj = upperMjVal - lowerMjVal;
+            let pol = '';
+            if (deltaMj === 1) pol = 'σ⁺';
+            else if (deltaMj === -1) pol = 'σ⁻';
+            else pol = 'π';
+
+            const x = xLeftDash + idx * stepX;
+
+            const upperPoints = upperY.map((y, i) => ({ y, mj: upperMj[i] }));
+            const lowerPoints = lowerY.map((y, i) => ({ y, mj: lowerMj[i] }));
+
+            dashInfo.push({
+                x: x,
+                upperPoints: upperPoints,
+                lowerPoints: lowerPoints,
+                correctPair: { upperIdx: upperIdx, lowerIdx: lowerIdx },
+                delta: displayDelta,
+                pol: pol,
+            });
+        });
+
+        // ---- 灰色虚线 ----
+        ctx.save();
+        ctx.globalAlpha = 0.4;
+        ctx.strokeStyle = '#888';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 6]);
+        dashInfo.forEach(d => {
+            ctx.beginPath();
+            ctx.moveTo(d.x, topMargin - 5);
+            ctx.lineTo(d.x, height - 5);
+            ctx.stroke();
+        });
+        ctx.restore();
+
+        // 左侧无磁场能级
+        ctx.beginPath();
+        ctx.moveTo(leftLineStartX, upperZeroY);
+        ctx.lineTo(leftLineEndX, upperZeroY);
+        ctx.strokeStyle = colorUpperLeft;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(leftLineStartX, lowerZeroY);
+        ctx.lineTo(leftLineEndX, lowerZeroY);
+        ctx.strokeStyle = colorLowerLeft;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('上能级 ³P₂', leftLineStartX - 6, upperZeroY);
+        ctx.fillText('下能级 ³S₁', leftLineStartX - 6, lowerZeroY);
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#ffc857';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('无磁场', (leftLineStartX + leftLineEndX) / 2, upperZeroY - 12);
+
+        // 右侧有磁场能级
+        ctx.strokeStyle = colorUpper;
+        ctx.lineWidth = 2.5;
+        upperY.forEach((y, i) => {
+            ctx.beginPath();
+            ctx.moveTo(rightLineStartX, y);
+            ctx.lineTo(rightLineEndX, y);
+            ctx.stroke();
+            ctx.fillStyle = '#d4e4f0';
+            ctx.font = '14px monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            const label = `M=${upperMj[i]}, Mg=${upperMjg[i].toFixed(1)}`;
+            ctx.fillText(label, rightLineEndX + 6, y);
+        });
+
+        ctx.strokeStyle = colorLower;
+        ctx.lineWidth = 2.5;
+        lowerY.forEach((y, i) => {
+            ctx.beginPath();
+            ctx.moveTo(rightLineStartX, y);
+            ctx.lineTo(rightLineEndX, y);
+            ctx.stroke();
+            ctx.fillStyle = '#d4e4f0';
+            ctx.font = '14px monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            const label = `M=${lowerMj[i]}, Mg=${lowerMjg[i].toFixed(1)}`;
+            ctx.fillText(label, rightLineEndX + 6, y);
+        });
+
+        // 连接虚线
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = colorUpperLeft;
+        upperY.forEach(y => {
+            ctx.beginPath();
+            ctx.moveTo(leftLineEndX, upperZeroY);
+            ctx.lineTo(rightLineStartX, y);
+            ctx.stroke();
+        });
+        ctx.strokeStyle = colorLowerLeft;
+        lowerY.forEach(y => {
+            ctx.beginPath();
+            ctx.moveTo(leftLineEndX, lowerZeroY);
+            ctx.lineTo(rightLineStartX, y);
+            ctx.stroke();
+        });
+        ctx.setLineDash([]);
+
+        // 下方标注
+        const specAreaTop = lowerY[lowerY.length - 1] + 25;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#e0e9f0';
+        ctx.font = '15px sans-serif';
+        dashInfo.forEach((d, idx) => {
+            ctx.fillText(d.pol, d.x, specAreaTop - 4);
+        });
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = '#aad0ff';
+        ctx.font = '13px monospace';
+        dashInfo.forEach((d, idx) => {
+            ctx.fillText(d.delta.toFixed(2), d.x, specAreaTop + 4);
+        });
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#ffc857';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('跃迁光谱（ΔMg）', rightLineStartX + 10, upperYTop - 6);
+
+        return dashInfo;
+    }
+
+    function drawArrowLine(ctx, x1, y1, x2, y2, color, lineWidth, solid = true, dash = false) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = lineWidth;
+        if (dash) {
+            ctx.setLineDash([6, 6]);
+        } else {
+            ctx.setLineDash([]);
+        }
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const arrowSize = 12;
+        const arrowX = x2 - 6 * Math.cos(angle);
+        const arrowY = y2 - 6 * Math.sin(angle);
+        ctx.beginPath();
+        ctx.moveTo(arrowX, arrowY);
+        ctx.lineTo(arrowX - arrowSize * Math.cos(angle - 0.4), arrowY - arrowSize * Math.sin(angle - 0.4));
+        ctx.lineTo(arrowX - arrowSize * Math.cos(angle + 0.4), arrowY - arrowSize * Math.sin(angle + 0.4));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function findIntersection(mouseX, mouseY, dashInfo, threshold = 15) {
+        for (let i = 0; i < dashInfo.length; i++) {
+            const d = dashInfo[i];
+            for (let j = 0; j < d.upperPoints.length; j++) {
+                const p = d.upperPoints[j];
+                const dist = Math.hypot(mouseX - d.x, mouseY - p.y);
+                if (dist < threshold) {
+                    return { dashIdx: i, type: 'upper', pointIdx: j };
+                }
+            }
+            for (let j = 0; j < d.lowerPoints.length; j++) {
+                const p = d.lowerPoints[j];
+                const dist = Math.hypot(mouseX - d.x, mouseY - p.y);
+                if (dist < threshold) {
+                    return { dashIdx: i, type: 'lower', pointIdx: j };
+                }
+            }
+        }
+        return null;
+    }
+
+    let canvasInstance = null;
+    let ctxInstance = null;
+
+    function renderStep6() {
+        const content = questionContent;
+        content.innerHTML = `
+            <div style="margin-bottom:8px;">
+                <span class="highlight">📌 第六关 · 能级跃迁连线（拖拽）</span>
+                <p style="color:#b4d0e5; margin-top:4px;">在上能级交叉点按下鼠标，拖拽到同一条虚线的下能级交叉点释放，完成跃迁连线。</p>
+            </div>
+            <div class="interact-tip" id="interactTip">💡 按住上能级点（蓝色线）拖拽到同一条虚线的下能级点（红色线）释放。</div>
+            <canvas id="zeemanCanvas" width="800" height="450"></canvas>
+            <div style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                <button class="action-btn secondary" id="errorClearBtn" style="background:#c0392b; box-shadow:0 6px 0 #78281f; display:none;">❌ 擦除错误线</button>
+                <button class="action-btn" id="submitTransBtn" style="display:none; background:#2ecc71; box-shadow:0 6px 0 #1e8449;">✅ 提交答案</button>
+                <span id="progressText" style="color:#aad0ff; font-size:0.95rem;">已连接: 0 / 9</span>
+            </div>
+        `;
+
+        const canvas = document.getElementById('zeemanCanvas');
+        const containerWidth = content.clientWidth - 20;
+        const aspectRatio = 450 / 800;
+        const newWidth = Math.min(containerWidth, 800);
+        const newHeight = newWidth * aspectRatio;
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        canvas.style.width = newWidth + 'px';
+        canvas.style.height = newHeight + 'px';
+        const ctx = canvas.getContext('2d');
+        ctxInstance = ctx;
+        canvasInstance = canvas;
+
+        dashInfoGlobal = drawZeemanDiagram(ctx, newWidth, newHeight);
+
+        const dashCount = dashInfoGlobal.length;
+        dashStatusGlobal = new Array(dashCount).fill('none');
+        dashUserChoiceGlobal = new Array(dashCount).fill(null);
+        errorDashIdxGlobal = -1;
+        allCorrect = false;
+        isDragging = false;
+        dragStart = null;
+
+        updateProgress();
+        renderFull();
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        canvas.onmousedown = function(e) {
+            if (allCorrect) return;
+            const pos = getMousePos(e);
+            const hit = findIntersection(pos.x, pos.y, dashInfoGlobal, 15);
+            if (!hit) return;
+            if (hit.type !== 'upper') return;
+            const dashIdx = hit.dashIdx;
+            if (dashStatusGlobal[dashIdx] === 'correct') {
+                showFeedback('这条跃迁已正确，不可修改。', 'info');
+                return;
+            }
+            if (dashStatusGlobal[dashIdx] === 'wrong') {
+                dashStatusGlobal[dashIdx] = 'none';
+                dashUserChoiceGlobal[dashIdx] = null;
+                errorDashIdxGlobal = -1;
+                document.getElementById('errorClearBtn').style.display = 'none';
+            }
+            isDragging = true;
+            const upperIdx = hit.pointIdx;
+            const y = dashInfoGlobal[dashIdx].upperPoints[upperIdx].y;
+            dragStart = { dashIdx, upperIdx, x: dashInfoGlobal[dashIdx].x, y };
+            currentMouseX = pos.x;
+            currentMouseY = pos.y;
+            renderFull();
+            showFeedback('拖拽到目标下能级点...', 'info');
+        };
+
+        canvas.onmousemove = function(e) {
+            if (!isDragging) return;
+            const pos = getMousePos(e);
+            currentMouseX = pos.x;
+            currentMouseY = pos.y;
+            renderFull();
+        };
+
+        canvas.onmouseup = function(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            const pos = getMousePos(e);
+            const hit = findIntersection(pos.x, pos.y, dashInfoGlobal, 15);
+            if (!hit || hit.type !== 'lower') {
+                showFeedback('拖拽取消，请释放到同一条虚线的下能级点。', 'fail');
+                renderFull();
+                return;
+            }
+            const dashIdx = hit.dashIdx;
+            if (dashIdx !== dragStart.dashIdx) {
+                showFeedback('起点和终点必须在同一条虚线上！', 'fail');
+                renderFull();
+                dragStart = null;
+                return;
+            }
+            if (dashStatusGlobal[dashIdx] === 'correct') {
+                showFeedback('这条跃迁已正确，不可修改。', 'info');
+                dragStart = null;
+                renderFull();
+                return;
+            }
+            const upperIdx = dragStart.upperIdx;
+            const lowerIdx = hit.pointIdx;
+            const d = dashInfoGlobal[dashIdx];
+            if (upperIdx === d.correctPair.upperIdx && lowerIdx === d.correctPair.lowerIdx) {
+                dashStatusGlobal[dashIdx] = 'correct';
+                dashUserChoiceGlobal[dashIdx] = { upperIdx, lowerIdx };
+                errorDashIdxGlobal = -1;
+                document.getElementById('errorClearBtn').style.display = 'none';
+                showFeedback('✅ 跃迁连接正确！', 'success');
+                renderFull();
+                updateProgress();
+                if (dashStatusGlobal.every(s => s === 'correct')) {
+                    allCorrect = true;
+                    document.getElementById('submitTransBtn').style.display = 'inline-block';
+                    showFeedback('🎉 所有跃迁已正确连接！请点击"提交答案"。', 'success');
+                    fireConfetti();
+                }
+            } else {
+                dashStatusGlobal[dashIdx] = 'wrong';
+                dashUserChoiceGlobal[dashIdx] = { upperIdx, lowerIdx };
+                errorDashIdxGlobal = dashIdx;
+                document.getElementById('errorClearBtn').style.display = 'inline-block';
+                showFeedback('❌ 配对错误！请点击"擦除错误线"重试。', 'fail');
+                renderFull();
+            }
+            dragStart = null;
+        };
+
+        canvas.onmouseleave = function(e) {
+            if (isDragging) {
+                isDragging = false;
+                dragStart = null;
+                renderFull();
+                showFeedback('拖拽已取消', 'info');
+            }
+        };
+
+        document.getElementById('errorClearBtn').onclick = function() {
+            if (errorDashIdxGlobal >= 0) {
+                dashStatusGlobal[errorDashIdxGlobal] = 'none';
+                dashUserChoiceGlobal[errorDashIdxGlobal] = null;
+                errorDashIdxGlobal = -1;
+                this.style.display = 'none';
+                showFeedback('已擦除错误线，请重新尝试。', 'info');
+                renderFull();
+            }
+        };
+
+        document.getElementById('submitTransBtn').onclick = function() {
+            if (allCorrect) {
+                state.step = 7;
+                renderStep(7);
+                confirmBtn.disabled = true;
+                nextBtn.disabled = true;
+                showFeedback('🎉 恭喜你完成全部6关！', 'success');
+                fireConfetti();
+            }
+        };
+
+        function updateProgress() {
+            const correctCount = dashStatusGlobal.filter(s => s === 'correct').length;
+            const total = dashStatusGlobal.length;
+            document.getElementById('progressText').textContent = `已连接: ${correctCount} / ${total}`;
+        }
+
+        function renderFull() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            dashInfoGlobal = drawZeemanDiagram(ctx, canvas.width, canvas.height);
+
+            dashStatusGlobal.forEach((s, idx) => {
+                if (s === 'correct' || s === 'wrong') {
+                    const choice = dashUserChoiceGlobal[idx];
+                    if (choice) {
+                        const d = dashInfoGlobal[idx];
+                        const y1 = d.upperPoints[choice.upperIdx].y;
+                        const y2 = d.lowerPoints[choice.lowerIdx].y;
+                        const color = (s === 'correct') ? '#2ecc71' : '#e74c3c';
+                        const dash = (s === 'wrong');
+                        drawArrowLine(ctx, d.x, y1, d.x, y2, color, s === 'correct' ? 2.5 : 2, s === 'correct', dash);
+                    }
+                }
+            });
+            if (isDragging && dragStart) {
+                const d = dashInfoGlobal[dragStart.dashIdx];
+                const y1 = d.upperPoints[dragStart.upperIdx].y;
+                const x1 = d.x;
+                const x2 = currentMouseX;
+                const y2 = currentMouseY;
+                ctx.save();
+                ctx.setLineDash([6, 6]);
+                ctx.strokeStyle = '#f1c40f';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+                ctx.restore();
+                ctx.beginPath();
+                ctx.arc(x1, y1, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = '#f1c40f';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        confirmBtn.disabled = true;
+        nextBtn.disabled = false;
+        showFeedback('🔍 按住上能级点拖拽到下能级点完成跃迁连线。', 'info');
+    }
+
+    // ==================== 渲染各步骤 ====================
+    function renderStep(step) {
+        const content = questionContent;
+        confirmBtn.disabled = true;
+        nextBtn.disabled = false;
+        resetBtn.style.display = 'none';
+        clearTimer();
+
+        if (step === 0) {
+            renderStartScreen(content);
+            stepBadge.innerHTML = `⚡ 准备开始`;
+            timerDisplay.textContent = `⏳ --`;
+            nextBtn.textContent = '🚀 开始闯关';
+            resetBtn.style.display = 'none';
+            return;
+        }
+
+        resetBtn.style.display = 'inline-block';
+        nextBtn.textContent = '➡️ 下一关';
+
+        if (step === 7) {
+            content.innerHTML = `
+                <div style="text-align:center; padding:40px 20px;">
+                    <h2 style="color:#ffc857; font-size:2.8rem;">🏆 闯关成功！</h2>
+                    <p style="color:#d4e4f0; font-size:1.4rem; margin:20px 0;">你已完成所有6个关卡，掌握了塞曼效应的核心知识！</p>
+                    <p style="color:#aad0ff;">📖 原老师的报告中，所有数据均已确认无误。</p>
+                    <p style="color:#ffd966; margin-top:20px;">🌟 你可以点击"重置当前"重新挑战任意关卡。</p>
+                </div>
+            `;
+            stepBadge.innerHTML = '🏁 完成！';
+            timerDisplay.textContent = '🎯';
+            confirmBtn.disabled = true;
+            nextBtn.disabled = true;
+            resetBtn.style.display = 'inline-block';
+            return;
+        }
+
+        if (step === 6) {
+            stepBadge.innerHTML = `⚡ 第 6 / 6 关 · 终极连线`;
+            timerDisplay.textContent = '🎨';
+            renderStep6();
+            return;
+        }
+
+        stepBadge.innerHTML = `⚡ 第 ${step} / 6 关`;
+
+        switch (step) {
+            case 1: renderStep1(content); break;
+            case 2: renderStep2(content); break;
+            case 3: renderStep3(content); break;
+            case 4: renderStep4(content); break;
+            case 5: renderStep5(content); break;
+            default: content.innerHTML = '<p>🎉 闯关完成！</p>';
+        }
+
+        if (step === 5 && state.gameFinished) {
+            nextBtn.disabled = true;
+            confirmBtn.disabled = true;
+            resetBtn.style.display = 'none';
+        }
+    }
+
+    function renderStartScreen(el) {
+        el.innerHTML = `
+            <div class="start-screen">
+                <h2>🔬 塞曼效应 · 闯关解密</h2>
+                <div class="rules-box">
+                    <li><strong>📌 背景</strong>：研究员原老师留下了一条 <strong>³P₂ → ³S₁</strong> 的谱线，磁场中发生了劈裂，请你帮他完成分析报告。</li>
+                    <li><strong>🎯 目标</strong>：通过 <strong>6 个关卡</strong>，逐步推导出塞曼劈裂的完整图像，最后一关通过拖拽连线巩固跃迁定则。</li>
+                    <li><strong>⏱️ 限时</strong>：每一关都有时间限制（20~90秒不等），超时需重新作答。</li>
+                    <li><strong>✅ 反馈</strong>：答对获得 🎉 表扬与彩带，答错会得到 💡 提示并显示正确答案。</li>
+                    <li><strong>🖱️ 操作</strong>：点击选择 / 输入数值 / 拖拽连线。</li>
+                    <li><strong>🏆 最终</strong>：完成第6关后即获得最终报告！</li>
+                </div>
+                <button class="start-btn" id="startGameBtn">⚡ 开始闯关</button>
+            </div>
+        `;
+        document.getElementById('startGameBtn').addEventListener('click', function() {
+            state.step = 1;
+            renderStep(1);
+            showFeedback('💡 第一关：请选择正确的 LSJ 组合。', 'info');
+            nextBtn.textContent = '➡️ 下一关';
+            confirmBtn.disabled = false;
+            resetBtn.style.display = 'inline-block';
+        });
+    }
+
+    // ---- 步骤1-3（保持不变） ----
+    function renderStep1(el) {
+        el.innerHTML = `
+            ${renderLevelCards()}
+            <div style="margin: 12px 0;"><span class="highlight">📌 第一步：</span>请确认上下能级的 (L, S, J) 组合。（点击选择，限时20秒）</div>
+            <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
+                <div style="background:#0f1f2b; padding:12px 18px; border-radius:18px;">
+                    <div style="color:#9bbdd4;">上能级 A (³P₂)</div>
+                    <div class="options-grid" id="lsjUpper">
+                        <button class="opt-btn" data-l="1" data-s="1" data-j="2">L=1, S=1, J=2</button>
+                        <button class="opt-btn" data-l="0" data-s="1" data-j="1">L=0, S=1, J=1</button>
+                        <button class="opt-btn" data-l="2" data-s="0" data-j="2">L=2, S=0, J=2</button>
+                    </div>
+                </div>
+                <div style="background:#0f1f2b; padding:12px 18px; border-radius:18px;">
+                    <div style="color:#9bbdd4;">下能级 B (³S₁)</div>
+                    <div class="options-grid" id="lsjLower">
+                        <button class="opt-btn" data-l="1" data-s="1" data-j="2">L=1, S=1, J=2</button>
+                        <button class="opt-btn" data-l="0" data-s="1" data-j="1">L=0, S=1, J=1</button>
+                        <button class="opt-btn" data-l="0" data-s="0" data-j="0">L=0, S=0, J=0</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.querySelectorAll('#lsjUpper .opt-btn, #lsjLower .opt-btn').forEach(b => b.classList.remove('selected-correct'));
+        document.querySelectorAll('#lsjUpper .opt-btn').forEach(b => {
+            b.onclick = function(e) {
+                document.querySelectorAll('#lsjUpper .opt-btn').forEach(x => x.classList.remove('selected-correct'));
+                this.classList.add('selected-correct');
+            };
+        });
+        document.querySelectorAll('#lsjLower .opt-btn').forEach(b => {
+            b.onclick = function(e) {
+                document.querySelectorAll('#lsjLower .opt-btn').forEach(x => x.classList.remove('selected-correct'));
+                this.classList.add('selected-correct');
+            };
+        });
+        startTimer(20, () => { showFeedback('⏰ 时间到！请先选择组合再确认。', 'fail'); });
+        window._step1Check = function() {
+            const upperSel = document.querySelector('#lsjUpper .opt-btn.selected-correct');
+            const lowerSel = document.querySelector('#lsjLower .opt-btn.selected-correct');
+            if (!upperSel || !lowerSel) {
+                showFeedback('请分别选择上能级和下能级的 (L, S, J)！', 'fail');
+                return false;
+            }
+            const u = { L: parseInt(upperSel.dataset.l), S: parseInt(upperSel.dataset.s), J: parseInt(upperSel.dataset.j) };
+            const l = { L: parseInt(lowerSel.dataset.l), S: parseInt(lowerSel.dataset.s), J: parseInt(lowerSel.dataset.j) };
+            const ok = checkStep1({ upperL: u.L, upperS: u.S, upperJ: u.J, lowerL: l.L, lowerS: l.S, lowerJ: l.J });
+            if (ok) {
+                showFeedback('🎉 完全正确！这就是 ³P₂ → ³S₁ 的 LSJ 组合！', 'success');
+                fireConfetti();
+                state.answers.lsj = { upper: u, lower: l };
+                nextBtn.disabled = false;
+                confirmBtn.disabled = true;
+                clearTimer();
+                return true;
+            }
+            return false;
+        };
+    }
+
+    function renderStep2(el) {
+        el.innerHTML = `
+            ${renderLevelCards()}
+            <div style="margin:12px 0;"><span class="highlight">📌 第二步：</span>计算朗德 g 因子。（限时90秒）</div>
+            <div style="display:flex; flex-wrap:wrap; gap:20px;">
+                <div><label style="color:#b4d0e5;">上能级 A g因子：</label><input class="input-answer" id="gUpper" placeholder="请输入数值"></div>
+                <div><label style="color:#b4d0e5;">下能级 B g因子：</label><input class="input-answer" id="gLower" placeholder="请输入数值"></div>
+            </div>
+        `;
+        startTimer(90, () => { showFeedback('⏰ 时间到！再试试，代入公式计算。', 'fail'); });
+        window._step2Check = function() {
+            const rawGu = document.getElementById('gUpper').value;
+            const rawGl = document.getElementById('gLower').value;
+            const gu = normalizeInput(rawGu);
+            const gl = normalizeInput(rawGl);
+            const ok = checkStep2(gu, gl);
+            if (ok) {
+                state.answers.gFactor = { upper: parseNumeric(gu), lower: parseNumeric(gl) };
+                showFeedback('🎉 太棒了！g_A = 3/2, g_B = 2，计算完全正确！', 'success');
+                fireConfetti();
+                nextBtn.disabled = false;
+                confirmBtn.disabled = true;
+                clearTimer();
+                return true;
+            }
+            return false;
+        };
+    }
+
+    function renderStep3(el) {
+        el.innerHTML = `
+            ${renderLevelCards()}
+            <div style="margin:12px 0;"><span class="highlight">📌 第三步：</span>请填写各自分裂条数。（限时60秒）</div>
+            <div style="display:flex; flex-wrap:wrap; gap:20px;">
+                <div><label style="color:#b4d0e5;">上能级 A 分裂数：</label><input class="input-answer" id="splitUpper" placeholder="输入整数"></div>
+                <div><label style="color:#b4d0e5;">下能级 B 分裂数：</label><input class="input-answer" id="splitLower" placeholder="输入整数"></div>
+            </div>
+        `;
+        startTimer(60, () => { showFeedback('⏰ 时间到！2J+1 简单计算。', 'fail'); });
+        window._step3Check = function() {
+            const rawU = document.getElementById('splitUpper').value;
+            const rawL = document.getElementById('splitLower').value;
+            const u = parseInt(normalizeInput(rawU), 10);
+            const l = parseInt(normalizeInput(rawL), 10);
+            if (isNaN(u) || isNaN(l)) { showFeedback('请输入整数！', 'fail'); return false; }
+            const ok = checkStep3(u, l);
+            if (ok) {
+                showFeedback('🎉 正确！上能级5条，下能级3条！', 'success');
+                fireConfetti();
+                state.answers.splitCount = { upper: u, lower: l };
+                nextBtn.disabled = false;
+                confirmBtn.disabled = true;
+                clearTimer();
+                return true;
+            }
+            return false;
+        };
+    }
+
+    // ===== 第四关：M_J 从大到小，下能级占位符改为 2,1,0,-1,-2 =====
+    function renderStep4(el) {
+        el.innerHTML = `
+            ${renderLevelCards()}
+            <div style="margin:12px 0;"><span class="highlight">📌 第四步：</span>写出各能级的磁量子数 M_J（用逗号分隔，<strong style="color:#ffd966;">按从大到小排列</strong>，如 2,1,0,-1,2）。（限时60秒）</div>
+            <div style="display:flex; flex-wrap:wrap; gap:20px;">
+                <div><label style="color:#b4d0e5;">上能级 A M_J：</label><input class="input-answer" id="mjUpper" placeholder="例：2,1,0,-1,2" style="width:280px;"></div>
+                <div><label style="color:#b4d0e5;">下能级 B M_J：</label><input class="input-answer" id="mjLower" placeholder="例：2,1,0,-1,-2" style="width:220px;"></div>
+            </div>
+        `;
+        startTimer(60, () => { showFeedback('⏰ 时间到！M_J 从 +J 到 -J 整数步长，从大到小排列，示例 2,1,0,-1,2。', 'fail'); });
+        window._step4Check = function() {
+            const rawU = document.getElementById('mjUpper').value;
+            const rawL = document.getElementById('mjLower').value;
+            const u = normalizeInput(rawU);
+            const l = normalizeInput(rawL);
+            const ok = checkStep4(u, l);
+            if (ok) {
+                showFeedback('🎉 完美！M_J 序列（从大到小）完全正确！', 'success');
+                fireConfetti();
+                state.answers.mjList = { upper: u, lower: l };
+                nextBtn.disabled = false;
+                confirmBtn.disabled = true;
+                clearTimer();
+                return true;
+            }
+            return false;
+        };
+    }
+
+    // ===== 第五关：M_J·g 从大到小，下能级占位符改为 2,1,0,-1,-2 =====
+    function renderStep5(el) {
+        el.innerHTML = `
+            ${renderLevelCards()}
+            <div style="margin:12px 0;"><span class="highlight">📌 第五步：</span>计算 M_J · g 的乘积（用逗号分隔，<strong style="color:#ffd966;">按从大到小排列</strong>，如 2,1,0,-1,2）。（限时90秒）</div>
+            <div style="display:flex; flex-wrap:wrap; gap:20px;">
+                <div><label style="color:#b4d0e5;">上能级 A M_J·g：</label><input class="input-answer" id="mjgu" placeholder="例：2,1,0,-1,2" style="width:300px;"></div>
+                <div><label style="color:#b4d0e5;">下能级 B M_J·g：</label><input class="input-answer" id="mjgl" placeholder="例：2,1,0,-1,-2" style="width:220px;"></div>
+            </div>
+        `;
+        startTimer(90, () => { showFeedback('⏰ 时间到！仔细相乘，从大到小排列，示例 2,1,0,-1,2。', 'fail'); });
+        window._step5Check = function() {
+            const rawU = document.getElementById('mjgu').value;
+            const rawL = document.getElementById('mjgl').value;
+            const u = normalizeInput(rawU);
+            const l = normalizeInput(rawL);
+            const ok = checkStep5(u, l);
+            if (ok) {
+                showFeedback('🎉 乘积（从大到小）完全正确！为下一步跃迁定则做准备。', 'success');
+                fireConfetti();
+                state.answers.mjgProduct = { upper: u, lower: l };
+                nextBtn.disabled = false;
+                confirmBtn.disabled = true;
+                clearTimer();
+                return true;
+            }
+            return false;
+        };
+    }
+
+    // ==================== 按钮事件绑定 ====================
+    confirmBtn.onclick = function() {
+        const step = state.step;
+        if (step === 0 || step === 6 || step === 7) return;
+        let handled = false;
+        if (step === 1 && window._step1Check) handled = window._step1Check();
+        else if (step === 2 && window._step2Check) handled = window._step2Check();
+        else if (step === 3 && window._step3Check) handled = window._step3Check();
+        else if (step === 4 && window._step4Check) handled = window._step4Check();
+        else if (step === 5 && window._step5Check) handled = window._step5Check();
+        if (handled) {}
+    };
+
+    nextBtn.onclick = function() {
+        const step = state.step;
+        if (step === 0) return;
+        if (step < 6) {
+            state.step++;
+            renderStep(state.step);
+            if (state.step === 6) {
+                confirmBtn.disabled = true;
+                nextBtn.disabled = false;
+                showFeedback('🖼️ 第6关：拖拽连线！', 'info');
+            } else {
+                confirmBtn.disabled = false;
+                nextBtn.disabled = true;
+                showFeedback('💡 新关卡已开启，加油！', 'info');
+            }
+        } else if (step === 6) {
+            showFeedback('请先完成所有连线并点击"提交答案"', 'info');
+        } else {
+            showFeedback('🎊 你已经完成了所有关卡！太棒了！', 'success');
+            fireConfetti();
+        }
+    };
+
+    resetBtn.onclick = function() {
+        if (state.step === 0) return;
+        clearTimer();
+        if (state.step === 7) {
+            state.step = 6;
+            renderStep(6);
+            showFeedback('🔄 已重置到第6关（连线），重新挑战。', 'info');
+            confirmBtn.disabled = true;
+            nextBtn.disabled = false;
+        } else if (state.step === 6) {
+            renderStep(6);
+            showFeedback('🔄 已重置第6关，重新开始连线。', 'info');
+            confirmBtn.disabled = true;
+            nextBtn.disabled = false;
+        } else {
+            renderStep(state.step);
+            showFeedback('🔄 已重置当前关卡，再试一次！', 'info');
+            confirmBtn.disabled = false;
+            nextBtn.disabled = true;
+        }
+    };
+
+    // ==================== 初始化 ====================
+    renderStep(0);
+    showFeedback('💡 欢迎来到光谱实验室！点击下方"开始闯关"按钮。', 'info');
+    console.log('🧪 塞曼效应闯关游戏已启动（6关，拖拽连线）！');
+    console.log('📌 第四、五关下能级占位符已改为 "2,1,0,-1,-2"，上能级保持 "2,1,0,-1,2"，正确答案不变。');
+</script>
+</body>
+</html>
