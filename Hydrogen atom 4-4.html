@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>氢原子光谱 · 能级闯关 (可调激发态)</title>
+    <style>
+        /* ===== 样式基本保持不变 ===== */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0b0e1a 0%, #1a1f30 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .game-wrapper {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(18, 25, 45, 0.8);
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            padding: 24px 28px 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(255, 215, 100, 0.15);
+            border: 1px solid rgba(255, 215, 100, 0.2);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #f5e9d8;
+            text-shadow: 0 2px 3px #00000080;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .game-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #f9e0a0, #f5b56b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .level-badge {
+            background: #2a3350;
+            padding: 8px 22px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            border: 1px solid #f5c542;
+            color: #f5d98e;
+            box-shadow: 0 0 12px #f5b56b55;
+        }
+        .timer-box {
+            background: #1e253b;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #b7e1fa;
+            border: 1px solid #4f7a9e;
+        }
+        .canvas-area {
+            background: #0e121f;
+            border-radius: 32px;
+            padding: 18px 10px 10px 10px;
+            margin: 10px 0 14px 0;
+            box-shadow: inset 0 6px 12px #00000066, 0 8px 18px #00000055;
+            border: 1px solid #3f4b6b;
+            position: relative;
+        }
+        #spectrumCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #0a0d17;
+            border-radius: 24px;
+            cursor: crosshair;
+            touch-action: none;
+            box-shadow: 0 0 0 1px #3c4a6b;
+            min-height: 460px;
+        }
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 20px;
+            justify-content: center;
+            align-items: center;
+            margin: 18px 0 8px 0;
+        }
+        .info-message {
+            flex: 2 1 260px;
+            background: #182034;
+            padding: 12px 22px;
+            border-radius: 60px;
+            color: #d6e5ff;
+            font-weight: 400;
+            border-left: 4px solid #f5b56b;
+            box-shadow: inset 0 2px 6px #00000055;
+            min-height: 4rem;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+        }
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            background: #2d3a5e;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: #f0f4ff;
+            border: 1px solid #5a6f9b;
+            box-shadow: 0 4px 0 #0b0f1a;
+            transition: 0.08s linear;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.4px;
+        }
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #0b0f1a;
+        }
+        .btn-primary {
+            background: #d48c3c;
+            border-color: #f5c542;
+            color: #1c1f2b;
+            box-shadow: 0 4px 0 #7a4f1a;
+            font-weight: 700;
+        }
+        .btn-success {
+            background: #3f8a5c;
+            border-color: #68c48a;
+            color: #fff;
+            box-shadow: 0 4px 0 #1f4d2e;
+        }
+        .btn-secondary {
+            background: #4a5a7a;
+            border-color: #6a7a9a;
+            color: #fff;
+            box-shadow: 0 4px 0 #2a3a5a;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0b0f1a;
+            pointer-events: none;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px 24px;
+            justify-content: center;
+            color: #bcc9e6;
+            margin: 6px 0 4px 0;
+            font-size: 0.9rem;
+        }
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .color-dot {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 20px;
+            border: 1px solid #ffffff60;
+        }
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000cc;
+            backdrop-filter: blur(3px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            animation: fadeIn 0.25s;
+        }
+        .modal-box {
+            background: #1a233b;
+            max-width: 620px;
+            width: 100%;
+            border-radius: 48px;
+            padding: 32px 30px;
+            border: 1px solid #f5b56b;
+            box-shadow: 0 30px 60px #000000cc;
+            color: #f0eddf;
+        }
+        .modal-box h2 {
+            font-size: 2rem;
+            margin: 0 0 12px 0;
+            color: #f5d98e;
+        }
+        .modal-box .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f5d98e;
+            margin: 16px 0 6px 0;
+            border-bottom: 1px solid #3f4b6b;
+            padding-bottom: 6px;
+        }
+        .modal-box p {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin: 8px 0;
+        }
+        .modal-box .btn {
+            margin-top: 22px;
+            width: 100%;
+            justify-content: center;
+        }
+        .modal-box .choice-grid {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .modal-box .choice-btn {
+            padding: 12px 28px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 40px;
+            border: 2px solid #5a6f9b;
+            background: #252f4a;
+            color: #b7d0f0;
+            cursor: pointer;
+            transition: 0.2s;
+            min-width: 70px;
+        }
+        .modal-box .choice-btn:hover {
+            background: #3f4f7a;
+            border-color: #f5b56b;
+            transform: scale(1.05);
+        }
+        .modal-box .choice-btn.selected {
+            background: #d48c3c;
+            border-color: #f5c542;
+            color: #1c1f2b;
+            box-shadow: 0 0 20px #f5b56b55;
+        }
+        .modal-box .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .modal-box .action-row .btn {
+            flex: 1;
+            margin-top: 0;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .hidden { display: none !important; }
+        .footer-note {
+            text-align: center;
+            color: #5e6f92;
+            font-size: 0.8rem;
+            margin-top: 12px;
+            letter-spacing: 1px;
+        }
+        .music-toggle {
+            background: #2a3350;
+            border: 1px solid #6a7fa0;
+            border-radius: 40px;
+            padding: 4px 14px;
+            color: #d6e5ff;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        /* 表格和表单 */
+        .series-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            color: #d6e5ff;
+        }
+        .series-table td, .series-table th {
+            padding: 10px 8px;
+            border-bottom: 1px solid #3f4b6b;
+            text-align: center;
+        }
+        .series-table .label-col {
+            text-align: left;
+            font-weight: 500;
+            color: #f5d98e;
+        }
+        .select-opt {
+            background: #252f4a;
+            color: #f0f4ff;
+            border: 1px solid #5a6f9b;
+            border-radius: 30px;
+            padding: 4px 12px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .select-opt:focus { outline: 2px solid #f5b56b; }
+        .option-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            justify-content: center;
+            margin: 16px 0 8px 0;
+            padding: 12px;
+            background: #111a2a;
+            border-radius: 40px;
+            border: 1px dashed #5a6f9b;
+        }
+        .option-bank .opt-tag {
+            background: #2d3a5e;
+            padding: 4px 18px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #b7d0f0;
+            border: 1px solid #5a6f9b;
+            cursor: default;
+        }
+        .fill-group {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 20px 0;
+            background: #111a2a;
+            padding: 20px 24px;
+            border-radius: 32px;
+            border: 1px solid #3f4b6b;
+        }
+        .fill-row {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 1.2rem;
+            color: #d6e5ff;
+            flex-wrap: wrap;
+        }
+        .fill-row .label {
+            width: 140px;
+            font-weight: 500;
+            color: #f5d98e;
+        }
+        .fill-row .input-box {
+            background: #1e253b;
+            border: 1px solid #5a6f9b;
+            border-radius: 30px;
+            padding: 6px 16px;
+            width: 80px;
+            color: #f0f4ff;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        .fill-row .input-box:focus {
+            outline: 2px solid #f5b56b;
+            border-color: #f5b56b;
+        }
+        .fill-row .check-mark {
+            font-size: 1.4rem;
+            min-width: 40px;
+        }
+        .progress-bar {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 6px 0 2px 0;
+            flex-wrap: wrap;
+        }
+        .progress-step {
+            padding: 4px 14px;
+            border-radius: 20px;
+            background: #2a3350;
+            color: #7f90b0;
+            font-size: 0.8rem;
+            border: 1px solid #3f4b6b;
+        }
+        .progress-step.done {
+            background: #3f8a5c;
+            color: #f0f4ff;
+            border-color: #68c48a;
+        }
+        .progress-step.active {
+            background: #d48c3c;
+            color: #1c1f2b;
+            border-color: #f5c542;
+            font-weight: 600;
+        }
+        .progress-step .count {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-left: 4px;
+        }
+        @media (max-width: 700px) {
+            .game-wrapper { padding: 16px; }
+            .game-title { font-size: 1.4rem; }
+            .fill-row { font-size: 1rem; }
+            .fill-row .label { width: 100px; }
+            .modal-box .choice-grid { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+            .modal-box .action-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-wrapper" id="app">
+    <div class="header">
+        <div class="game-title">⚛️ 氢光谱·闯关</div>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <span class="music-toggle" id="musicToggle">🔊 音乐</span>
+            <div class="level-badge" id="levelDisplay">第一关 · 能级</div>
+            <div class="timer-box" id="timerDisplay">⏱️ 00</div>
+        </div>
+    </div>
+
+    <div class="canvas-area">
+        <canvas id="spectrumCanvas" width="1000" height="580"></canvas>
+    </div>
+
+    <div class="progress-bar" id="progressBar">
+        <!-- 由 JS 动态生成 -->
+    </div>
+
+    <div class="control-panel">
+        <div class="info-message" id="infoMessage">💡 点击「开始闯关」查看背景与目标</div>
+        <div class="btn-group">
+            <button class="btn" id="resetBtn">🔄 重置</button>
+            <button class="btn btn-primary" id="startLevelBtn">🚀 开始闯关</button>
+        </div>
+    </div>
+
+    <div class="legend">
+        <span><span class="color-dot" style="background:#4da6ff;"></span> 莱曼系</span>
+        <span><span class="color-dot" style="background:#f5b56b;"></span> 巴尔末系</span>
+        <span><span class="color-dot" style="background:#e08080;"></span> 帕邢系</span>
+        <span><span class="color-dot" style="background:#5fb8a0;"></span> 布喇开系</span>
+        <span><span class="color-dot" style="background:#c894e0;"></span> 普丰特系</span>
+        <span style="color:#8f9fc0;">| 垂直拖拽画线</span>
+    </div>
+    <div class="footer-note">← 每关限时 · 正确得分 →</div>
+</div>
+
+<!-- 模态框 -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box" id="modalBox">
+        <h2 id="modalTitle">📋 光谱分析报告</h2>
+        <div id="modalBody">
+            <div class="section-title">📌 情景</div>
+            <p>原子光谱分析小组的同学正在研究氢原子光谱，在分析能级跃迁时遇到了困惑，请你帮他完成分析报告。</p>
+            <div class="section-title">🎯 闯关说明</div>
+            <p>通过 3 个关卡，逐步推导出氢原子一般光谱的完整图像，最后一关通过拖拽连线巩固线系的界定。</p>
+            <p><strong>⏱️ 限时：</strong>每一关都有时间限制（30~150秒不等），超时需重新作答。</p>
+            <p><strong>✅ 反馈：</strong>答对获得 🎉 表扬，答错会得到 💡 提示并显示正确答案。</p>
+            <p><strong>🖱️ 操作：</strong>点击选择 / 输入数值 / 拖拽连线。</p>
+            <p style="color:#f5b56b;">🏆 完成第3关后即获得最终报告！</p>
+        </div>
+        <button class="btn btn-primary" id="modalActionBtn">开始第一关</button>
+    </div>
+</div>
+
+<audio id="bgMusic" loop preload="auto">
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    (function() {
+        // ============================================================
+        // 1. 音乐控制
+        // ============================================================
+        const bgMusic = document.getElementById('bgMusic');
+        let musicEnabled = true;
+        document.getElementById('musicToggle').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (musicEnabled) {
+                bgMusic.pause();
+                musicEnabled = false;
+                this.textContent = '🔇 音乐';
+            } else {
+                bgMusic.play().catch(() => {});
+                musicEnabled = true;
+                this.textContent = '🔊 音乐';
+            }
+        });
+        document.addEventListener('click', function() {
+            if (musicEnabled && bgMusic.paused) {
+                bgMusic.play().catch(() => {});
+            }
+        }, { once: false });
+
+        // ============================================================
+        // 2. 物理参数与配置
+        // ============================================================
+        const ENERGY = (n) => -13.6 / (n * n);
+        
+        // 基础线系定义（所有可能的跃迁，按终态分组）
+        const ALL_SERIES = [
+            { key: 'LYMAN', label: '莱曼系', color: '#4da6ff', nf: 1, niList: [2,3,4,5,6] },
+            { key: 'BALMER', label: '巴尔末系', color: '#f5b56b', nf: 2, niList: [3,4,5,6] },
+            { key: 'PASCHEN', label: '帕邢系', color: '#e08080', nf: 3, niList: [4,5,6] },
+            { key: 'BRACKETT', label: '布喇开系', color: '#5fb8a0', nf: 4, niList: [5,6] },
+            { key: 'PFUND', label: '普丰特系', color: '#c894e0', nf: 5, niList: [6] }
+        ];
+
+        // 根据最大主量子数 nMax 生成线系配置（只包含 <= nMax 的能级）
+        function generateSeriesConfig(nMax) {
+            const config = [];
+            ALL_SERIES.forEach(s => {
+                const transitions = [];
+                s.niList.forEach(ni => {
+                    if (ni <= nMax && s.nf < ni && s.nf <= nMax) {
+                        transitions.push([s.nf, ni]);
+                    }
+                });
+                if (transitions.length > 0) {
+                    config.push({
+                        key: s.key,
+                        label: s.label,
+                        color: s.color,
+                        nf: s.nf,
+                        transitions: transitions
+                    });
+                }
+            });
+            return config;
+        }
+
+        // 获取当前 nMax 下应该显示的能级列表
+        function getLevelsForNMax(nMax) {
+            const levels = [];
+            for (let n = 1; n <= nMax; n++) {
+                levels.push(n);
+            }
+            return levels;
+        }
+
+        // 获取当前 nMax 下所有可能的跃迁总数（仅本激发态）
+        function getTotalTransitionsForCurrentN(nMax) {
+            let total = 0;
+            ALL_SERIES.forEach(s => {
+                s.niList.forEach(ni => {
+                    if (ni <= nMax && s.nf < ni && s.nf <= nMax) {
+                        total++;
+                    }
+                });
+            });
+            return total;
+        }
+
+        // ============================================================
+        // 3. DOM 引用
+        // ============================================================
+        const canvas = document.getElementById('spectrumCanvas');
+        const ctx = canvas.getContext('2d');
+        const infoMsg = document.getElementById('infoMessage');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalActionBtn = document.getElementById('modalActionBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const startLevelBtn = document.getElementById('startLevelBtn');
+        const progressBar = document.getElementById('progressBar');
+
+        // ============================================================
+        // 4. 游戏状态
+        // ============================================================
+        let currentLevel = 0;
+        let gameActive = false;
+        let timer = 0;
+        let timerInterval = null;
+        let score = 0;
+        let levelCompleted = false;
+        let nMax = 6;
+        let gameFinished = false;
+
+        // 能级绘图参数
+        const levelX = 160;
+        const levelWidth = 580;
+        const levelYPos = {};
+        const yBase = 500;
+        
+        function calculateLevelY(maxN) {
+            const count = maxN;
+            let gaps = [];
+            if (count <= 3) {
+                gaps = [0, 90, 80];
+            } else if (count === 4) {
+                gaps = [0, 80, 70, 60];
+            } else if (count === 5) {
+                gaps = [0, 76, 64, 52, 40];
+            } else {
+                gaps = [0, 68, 56, 46, 36, 28];
+            }
+            let y = yBase;
+            for (let n = 1; n <= count; n++) {
+                if (n === 1) levelYPos[n] = y;
+                else {
+                    y = y - (gaps[n] || 30);
+                    levelYPos[n] = y;
+                }
+            }
+        }
+
+        // 谱线排列参数
+        const withinSeriesSpacing = 20;
+        const betweenSeriesSpacing = 50;
+
+        let seriesConfig = [];
+        let currentSeriesIdx = 0;
+        let currentTransIdx = 0;
+        let drawnLines = [];
+
+        let isDrawing = false;
+        let drawStartY = null, drawEndY = null;
+        let drawStartN = null;
+
+        // ============================================================
+        // 5. 工具函数
+        // ============================================================
+        function formatTime(sec) { return String(Math.floor(sec)).padStart(2, '0'); }
+        function stopTimer() {
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        }
+
+        function startTimer(seconds = 30) {
+            if (timerInterval) return;
+            timer = seconds;
+            timerDisplay.textContent = '⏱️ ' + formatTime(timer);
+            timerInterval = setInterval(() => {
+                timer -= 1;
+                timerDisplay.textContent = '⏱️ ' + formatTime(timer);
+                if (timer <= 0) {
+                    stopTimer();
+                    infoMsg.innerHTML = '⏰ 时间到！点击「重置」再试一次吧。';
+                    gameActive = false;
+                    levelCompleted = false;
+                    showTimeoutModal();
+                }
+            }, 1000);
+        }
+
+        function showTimeoutModal() {
+            modalTitle.innerText = '⏰ 时间到！';
+            modalBody.innerHTML = `<p>别灰心，再试一次吧！</p><p style="color:#f5b56b;">💡 提示：回顾一下能级与跃迁规则。</p>`;
+            modalActionBtn.textContent = '🔄 重新挑战';
+            modalActionBtn.onclick = () => { modalOverlay.classList.add('hidden'); fullReset(); };
+            modalOverlay.classList.remove('hidden');
+        }
+
+        // 绘制箭头
+        function drawArrow(ctx, fromX, fromY, toX, toY, color) {
+            const headLen = 12;
+            const headAngle = Math.PI / 6;
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLen * Math.cos(angle - headAngle), toY - headLen * Math.sin(angle - headAngle));
+            ctx.lineTo(toX - headLen * Math.cos(angle + headAngle), toY - headLen * Math.sin(angle + headAngle));
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // 计算谱线x位置
+        function getLineXPosition(seriesIdx, transIdx) {
+            let x = levelX + 25;
+            for (let i = 0; i < seriesIdx; i++) {
+                x += seriesConfig[i].transitions.length * withinSeriesSpacing + betweenSeriesSpacing;
+            }
+            x += transIdx * withinSeriesSpacing;
+            return x;
+        }
+
+        function getLevelNFromY(y) {
+            let closest = null, minDist = Infinity;
+            const levels = Object.keys(levelYPos).map(Number);
+            levels.forEach(n => {
+                const dist = Math.abs(y - levelYPos[n]);
+                if (dist < minDist) { minDist = dist; closest = n; }
+            });
+            if (minDist < 35) return closest;
+            return null;
+        }
+
+        function updateProgress() {
+            const steps = progressBar.querySelectorAll('.progress-step');
+            steps.forEach((el, idx) => {
+                el.classList.remove('active', 'done');
+                if (idx < seriesConfig.length) {
+                    const s = seriesConfig[idx];
+                    const total = s.transitions.length;
+                    const done = (idx < currentSeriesIdx) ? total : (idx === currentSeriesIdx ? currentTransIdx : 0);
+                    const countSpan = el.querySelector('.count');
+                    if (countSpan) countSpan.textContent = '(' + done + '/' + total + ')';
+                    if (idx < currentSeriesIdx) el.classList.add('done');
+                    else if (idx === currentSeriesIdx && currentSeriesIdx < seriesConfig.length) el.classList.add('active');
+                } else {
+                    el.classList.add('done');
+                }
+            });
+            if (currentSeriesIdx >= seriesConfig.length) {
+                steps.forEach(el => el.classList.add('done'));
+            }
+        }
+
+        // ============================================================
+        // 6. 绘制画布
+        // ============================================================
+        function drawCanvas() {
+            const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            ctx.fillStyle = '#0a0d17';
+            ctx.fillRect(0, 0, w, h);
+            
+            for (let i=0; i<80; i++) {
+                ctx.fillStyle = `rgba(255,255,240,${0.15+Math.random()*0.35})`;
+                ctx.beginPath();
+                ctx.arc(20+Math.random()*960, 20+Math.random()*540, 1+Math.random()*2, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            const levels = getLevelsForNMax(nMax);
+            
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            levels.forEach(n => {
+                const y = levelYPos[n];
+                if (y === undefined) return;
+                const isGround = (n === 1);
+                const isMax = (n === nMax);
+                ctx.strokeStyle = isGround ? '#f5d98e' : (isMax ? '#f5b56b' : '#7fa8d9');
+                ctx.lineWidth = isGround ? 4 : 3;
+                ctx.shadowColor = isGround ? '#f5b56b' : (isMax ? '#f5b56b55' : '#3a6faa');
+                ctx.shadowBlur = isGround ? 10 : 6;
+                ctx.beginPath();
+                ctx.moveTo(levelX, y);
+                ctx.lineTo(levelX + levelWidth, y);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                ctx.fillStyle = isGround ? '#f5d98e' : (isMax ? '#f5b56b' : '#b8d0f0');
+                ctx.font = 'bold 22px "Segoe UI"';
+                ctx.fillText('n=' + n, levelX - 24, y);
+                
+                ctx.fillStyle = '#8aa0c0';
+                ctx.font = '15px monospace';
+                const eVal = ENERGY(n);
+                ctx.textAlign = 'left';
+                ctx.fillText(eVal.toFixed(2) + ' eV', levelX + levelWidth + 16, y);
+                ctx.textAlign = 'right';
+            });
+
+            if (currentLevel === 2) {
+                ctx.textAlign = 'left';
+                ctx.font = 'bold 13px sans-serif';
+                ctx.fillStyle = '#f5b56b';
+                ctx.fillText('⚡ 初始激发态: n = ' + nMax, 50, 170);
+                ctx.fillStyle = '#6a7a9a';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('(从高能级向低能级跃迁)', 50, 195);
+            }
+
+            if (currentLevel === 2) {
+                ctx.textAlign = 'left';
+                ctx.font = 'bold 14px sans-serif';
+                if (currentSeriesIdx < seriesConfig.length) {
+                    const s = seriesConfig[currentSeriesIdx];
+                    const total = s.transitions.length;
+                    const done = currentTransIdx;
+                    ctx.fillStyle = s.color;
+                    ctx.fillText('⬤ 当前: ' + s.label + '  (' + (done+1) + '/' + total + ')', 50, 45);
+                    ctx.fillStyle = '#8aa0c0';
+                    ctx.font = '13px sans-serif';
+                    const nextTrans = s.transitions[currentTransIdx];
+                    if (nextTrans) {
+                        ctx.fillText('请画: n=' + nextTrans[1] + ' → n=' + nextTrans[0], 50, 70);
+                    }
+                } else {
+                    ctx.fillStyle = '#68c48a';
+                    ctx.font = 'bold 16px sans-serif';
+                    const totalLines = seriesConfig.reduce((sum, s) => sum + s.transitions.length, 0);
+                    ctx.fillText('✅ 所有 ' + totalLines + ' 条谱线已画完！闯关成功！', 50, 45);
+                }
+                seriesConfig.forEach((s, i) => {
+                    ctx.fillStyle = s.color;
+                    ctx.font = '12px sans-serif';
+                    const done = (i < currentSeriesIdx) ? s.transitions.length : (i === currentSeriesIdx ? currentTransIdx : 0);
+                    ctx.fillText('⬤ ' + s.label + ' (' + done + '/' + s.transitions.length + ')', 50 + i*125, 100);
+                });
+                ctx.fillStyle = '#6a7a9a';
+                ctx.font = '12px sans-serif';
+                ctx.fillText('↑ 垂直拖拽: 从高能级(上)拖到低能级(下) ↑', 50, 135);
+                ctx.textAlign = 'right';
+            }
+
+            drawnLines.forEach((line) => {
+                const col = line.correct ? line.color : '#ff6666';
+                const xPos = line.xPos;
+                const yHigh = levelYPos[line.nHigh];
+                const yLow = levelYPos[line.nLow];
+                if (yHigh === undefined || yLow === undefined) return;
+                drawArrow(ctx, xPos, yHigh, xPos, yLow, col);
+                if (line.correct) {
+                    ctx.fillStyle = col;
+                    ctx.beginPath();
+                    ctx.arc(xPos, (yHigh + yLow) / 2, 5, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffffcc';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(line.nHigh + '→' + line.nLow, xPos, (yHigh + yLow) / 2 - 18);
+                }
+            });
+
+            if (isDrawing && drawStartY !== null && drawEndY !== null) {
+                const y1 = drawStartY;
+                const y2 = drawEndY;
+                const previewX = getLineXPosition(currentSeriesIdx, currentTransIdx);
+                ctx.save();
+                ctx.strokeStyle = '#ffd966';
+                ctx.fillStyle = '#ffd966';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([6, 6]);
+                ctx.beginPath();
+                ctx.moveTo(previewX, y1);
+                ctx.lineTo(previewX, y2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                const headLen = 10;
+                const headAngle = Math.PI / 6;
+                const angle = Math.PI / 2;
+                ctx.beginPath();
+                ctx.moveTo(previewX, y2);
+                ctx.lineTo(previewX - headLen * Math.cos(angle - headAngle), y2 - headLen * Math.sin(angle - headAngle));
+                ctx.lineTo(previewX - headLen * Math.cos(angle + headAngle), y2 - headLen * Math.sin(angle + headAngle));
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+                const nEnd = getLevelNFromY(drawEndY);
+                if (nEnd !== null) {
+                    ctx.fillStyle = '#ffd966cc';
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('n=' + nEnd, previewX + 40, drawEndY);
+                }
+            }
+        }
+
+        // ============================================================
+        // 7. 初始化游戏状态
+        // ============================================================
+        function initGameState(maxN) {
+            nMax = maxN;
+            seriesConfig = generateSeriesConfig(nMax);
+            currentSeriesIdx = 0;
+            currentTransIdx = 0;
+            drawnLines = [];
+            score = 0;  // 重置得分
+            calculateLevelY(nMax);
+            progressBar.innerHTML = '';
+            seriesConfig.forEach((s, idx) => {
+                const span = document.createElement('span');
+                span.className = 'progress-step';
+                span.dataset.step = idx;
+                span.innerHTML = s.label + ' <span class="count">(0/' + s.transitions.length + ')</span>';
+                progressBar.appendChild(span);
+            });
+            updateProgress();
+            drawCanvas();
+        }
+
+        // ============================================================
+        // 8. 显示选择界面
+        // ============================================================
+        function showExcitationChoice(fromReset = false) {
+            modalTitle.innerText = '⚡ 选择初始激发态';
+            modalBody.innerHTML = `
+                <p style="text-align:center; font-size:1.1rem;">氢原子被激发到了哪个能级？</p>
+                <p style="text-align:center; color:#8aa0c0; font-size:0.95rem;">选择后将生成对应的能级图和谱线任务</p>
+                <div class="choice-grid">
+                    <button class="choice-btn" data-n="3">n = 3</button>
+                    <button class="choice-btn" data-n="4">n = 4</button>
+                    <button class="choice-btn" data-n="5">n = 5</button>
+                    <button class="choice-btn" data-n="6" style="border-color:#f5b56b;">n = 6</button>
+                </div>
+                <p style="text-align:center; font-size:0.9rem; color:#6a7a9a; margin-top:8px;">💡 选择后进入第三关绘制谱线</p>
+                ${fromReset ? '' : '<p style="text-align:center; font-size:0.9rem; color:#f5b56b; margin-top:4px;">🎯 通关后可以返回这里选择新的激发态继续挑战</p>'}
+            `;
+            modalActionBtn.textContent = '🚪 退出游戏';
+            modalActionBtn.className = 'btn btn-secondary';
+            modalActionBtn.onclick = () => {
+                modalOverlay.classList.add('hidden');
+                infoMsg.innerHTML = '👋 感谢探索氢原子光谱！点击「开始闯关」可重新挑战。';
+                gameFinished = true;
+            };
+            modalOverlay.classList.remove('hidden');
+
+            setTimeout(() => {
+                document.querySelectorAll('.choice-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const n = parseInt(this.dataset.n);
+                        if (currentLevel === 2 && !levelCompleted) {
+                            stopTimer();
+                        }
+                        initGameState(n);
+                        modalOverlay.classList.add('hidden');
+                        currentLevel = 2;
+                        startLevel(2);
+                    });
+                });
+            }, 50);
+        }
+
+        // ============================================================
+        // 9. 关卡控制
+        // ============================================================
+        function startLevel(level) {
+            if (timerInterval) stopTimer();
+            gameActive = true;
+            levelCompleted = false;
+            currentLevel = level;
+
+            if (level === 0) {
+                levelDisplay.textContent = '第一关 · 能级填空';
+                infoMsg.innerHTML = '📝 请在下方填写正整数';
+                modalTitle.innerText = '🔬 第一关 · 能级填空';
+                modalBody.innerHTML = `
+                    <div class="fill-group">
+                        <div class="fill-row"><span class="label">基态</span><span>n =</span>
+                            <input class="input-box" id="fill1" type="text" placeholder="正整数"><span class="check-mark" id="check1"></span>
+                        </div>
+                        <div class="fill-row"><span class="label">第一激发态</span><span>n =</span>
+                            <input class="input-box" id="fill2" type="text" placeholder="正整数"><span class="check-mark" id="check2"></span>
+                        </div>
+                        <div class="fill-row"><span class="label">第二激发态</span><span>n =</span>
+                            <input class="input-box" id="fill3" type="text" placeholder="正整数"><span class="check-mark" id="check3"></span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="submitFillBtn">✅ 提交答案</button>
+                `;
+                modalActionBtn.textContent = '返回';
+                modalActionBtn.onclick = () => { modalOverlay.classList.add('hidden'); };
+                modalOverlay.classList.remove('hidden');
+                drawCanvas();
+                startTimer(45);
+                setTimeout(() => {
+                    document.getElementById('submitFillBtn').addEventListener('click', function() {
+                        if (!gameActive) return;
+                        const v1 = document.getElementById('fill1').value.trim();
+                        const v2 = document.getElementById('fill2').value.trim();
+                        const v3 = document.getElementById('fill3').value.trim();
+                        const c1 = document.getElementById('check1');
+                        const c2 = document.getElementById('check2');
+                        const c3 = document.getElementById('check3');
+                        const ok1 = (v1 === '1'), ok2 = (v2 === '2'), ok3 = (v3 === '3');
+                        c1.textContent = ok1 ? '✅' : '❌';
+                        c2.textContent = ok2 ? '✅' : '❌';
+                        c3.textContent = ok3 ? '✅' : '❌';
+                        if (ok1 && ok2 && ok3) {
+                            infoMsg.innerHTML = '🎉 完全正确！进入第二关！';
+                            modalOverlay.classList.add('hidden');
+                            stopTimer();
+                            startLevel(1);
+                        } else {
+                            infoMsg.innerHTML = '💡 再想想：基态 n=1，第一激发态 n=2，第二激发态 n=3。';
+                        }
+                    });
+                }, 50);
+            } else if (level === 1) {
+                levelDisplay.textContent = '第二关 · 跃迁选择';
+                infoMsg.innerHTML = '✏️ 为每个线系选择正确的终态(nf)和初态(ni)范围';
+                modalTitle.innerText = '📘 第二关 · 跃迁规律';
+                let tableHTML = `<table class="series-table"><tr><th>线系</th><th>终态 nf</th><th>初态 ni</th></tr>`;
+                const allSeriesForSelect = ALL_SERIES.filter(s => s.nf < 6);
+                allSeriesForSelect.forEach(s => {
+                    tableHTML += `<tr>
+                        <td class="label-col">${s.label}</td>
+                        <td><select class="select-opt" id="nf_${s.key}">
+                            <option value="">--</option>${[1,2,3,4,5].filter(n => n < 6).map(n=>`<option value="${n}">n=${n}</option>`).join('')}
+                        </select></td>
+                        <td><select class="select-opt" id="ni_${s.key}">
+                            <option value="">--</option>
+                            ${[2,3,4,5,6].map(n=>`<option value="ge${n}">n≥${n}</option>`).join('')}
+                        </select></td>
+                    </tr>`;
+                });
+                tableHTML += '</table>';
+                modalBody.innerHTML = `
+                    ${tableHTML}
+                    <div class="option-bank">
+                        <span class="opt-tag">终态: n=1~5</span>
+                        <span class="opt-tag">初态: n≥2~6</span>
+                    </div>
+                    <button class="btn btn-primary" id="submitSeriesBtn">✅ 提交答案</button>
+                `;
+                modalActionBtn.textContent = '返回';
+                modalActionBtn.onclick = () => { modalOverlay.classList.add('hidden'); };
+                modalOverlay.classList.remove('hidden');
+                drawCanvas();
+                startTimer(60);
+                setTimeout(() => {
+                    document.getElementById('submitSeriesBtn').addEventListener('click', function() {
+                        if (!gameActive) return;
+                        const expected = {};
+                        const nfExpected = {};
+                        ALL_SERIES.forEach(s => {
+                            expected[s.key] = 'ge' + (s.nf + 1);
+                            nfExpected[s.key] = String(s.nf);
+                        });
+                        let allCorrect = true, msg = '';
+                        ALL_SERIES.forEach(s => {
+                            const nf = document.getElementById(`nf_${s.key}`).value;
+                            const ni = document.getElementById(`ni_${s.key}`).value;
+                            if (nf === nfExpected[s.key] && ni === expected[s.key]) {
+                                msg += `✅ ${s.label} 正确！ `;
+                            } else {
+                                allCorrect = false;
+                                msg += `❌ ${s.label} 应为终态 n=${nfExpected[s.key]}，初态 ${expected[s.key]}。 `;
+                            }
+                        });
+                        if (allCorrect) {
+                            infoMsg.innerHTML = '🎉 全部正确！进入第三关！';
+                            modalOverlay.classList.add('hidden');
+                            stopTimer();
+                            showExcitationChoice(false);
+                        } else {
+                            infoMsg.innerHTML = '💡 ' + msg;
+                        }
+                    });
+                }, 50);
+            } else if (level === 2) {
+                levelDisplay.textContent = '第三关 · 绘制谱线 (n=' + nMax + ')';
+                const totalLines = seriesConfig.reduce((sum, s) => sum + s.transitions.length, 0);
+                infoMsg.innerHTML = '🎯 垂直拖拽: 从高能级(上)拖到低能级(下)，共 ' + totalLines + ' 条谱线';
+                currentSeriesIdx = 0;
+                currentTransIdx = 0;
+                drawnLines = [];
+                calculateLevelY(nMax);
+                updateProgress();
+                drawCanvas();
+                startTimer(150);
+                gameActive = true;
+                isDrawing = false;
+                drawStartY = null;
+                drawEndY = null;
+                drawStartN = null;
+                levelCompleted = false;
+            }
+        }
+
+        // ============================================================
+        // 10. 第三关拖拽事件
+        // ============================================================
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+                e.preventDefault();
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+
+        function onPointerDown(e) {
+            if (currentLevel !== 2 || !gameActive || levelCompleted) return;
+            if (currentSeriesIdx >= seriesConfig.length) return;
+            const pos = getCanvasPos(e);
+            const n = getLevelNFromY(pos.y);
+            if (n === null) return;
+            if (pos.x < levelX - 30 || pos.x > levelX + levelWidth + 40) return;
+            isDrawing = true;
+            drawStartY = pos.y;
+            drawEndY = pos.y;
+            drawStartN = n;
+        }
+
+        function onPointerMove(e) {
+            if (!isDrawing || currentLevel !== 2 || !gameActive) return;
+            const pos = getCanvasPos(e);
+            drawEndY = pos.y;
+            drawCanvas();
+        }
+
+        function onPointerUp(e) {
+            if (!isDrawing || currentLevel !== 2 || !gameActive) {
+                isDrawing = false;
+                return;
+            }
+            isDrawing = false;
+            const startY = drawStartY;
+            const endY = drawEndY;
+            const startN = drawStartN;
+            if (startY === null || endY === null || startN === null || Math.abs(endY - startY) < 15) {
+                drawStartY = null; drawEndY = null; drawStartN = null;
+                drawCanvas();
+                return;
+            }
+            const endN = getLevelNFromY(endY);
+            if (endN === null || startN === endN) {
+                infoMsg.innerHTML = '⚠️ 请选择两个不同能级。';
+                drawStartY = null; drawEndY = null; drawStartN = null;
+                drawCanvas();
+                return;
+            }
+            const nHigh = Math.max(startN, endN);
+            const nLow = Math.min(startN, endN);
+            
+            if (currentSeriesIdx >= seriesConfig.length) {
+                infoMsg.innerHTML = '🎊 所有谱线已画完！闯关成功！';
+                levelCompleted = true; gameActive = false; stopTimer(); 
+                showFinalModal();
+                drawStartY = null; drawEndY = null; drawStartN = null;
+                drawCanvas();
+                return;
+            }
+            const s = seriesConfig[currentSeriesIdx];
+            const target = s.transitions[currentTransIdx];
+            if (!target) {
+                currentSeriesIdx++;
+                currentTransIdx = 0;
+                updateProgress();
+                drawCanvas();
+                drawStartY = null; drawEndY = null; drawStartN = null;
+                return;
+            }
+            const correct = (target[0] === nLow && target[1] === nHigh);
+            const alreadyDrawn = drawnLines.some(line => 
+                line.nLow === nLow && line.nHigh === nHigh && line.seriesKey === s.key
+            );
+            if (alreadyDrawn) {
+                infoMsg.innerHTML = '⚠️ 这条谱线已经画过了！';
+                drawStartY = null; drawEndY = null; drawStartN = null;
+                drawCanvas();
+                return;
+            }
+            const xPos = getLineXPosition(currentSeriesIdx, currentTransIdx);
+            drawnLines.push({
+                seriesKey: s.key,
+                nLow: nLow,
+                nHigh: nHigh,
+                color: s.color,
+                correct: correct,
+                xPos: xPos
+            });
+            if (correct) {
+                score++;
+                infoMsg.innerHTML = `✅ 正确！${s.label}: ${nHigh}→${nLow}  (${currentTransIdx+1}/${s.transitions.length})`;
+                currentTransIdx++;
+                if (currentTransIdx >= s.transitions.length) {
+                    currentSeriesIdx++;
+                    currentTransIdx = 0;
+                    if (currentSeriesIdx < seriesConfig.length) {
+                        infoMsg.innerHTML += ` 🎉 进入下一线系: ${seriesConfig[currentSeriesIdx].label}`;
+                    }
+                }
+                updateProgress();
+                if (currentSeriesIdx >= seriesConfig.length) {
+                    infoMsg.innerHTML = '🏆 太棒了！所有谱线绘制完成！通关！';
+                    levelCompleted = true;
+                    gameActive = false;
+                    stopTimer();
+                    showFinalModal();
+                }
+            } else {
+                infoMsg.innerHTML = `❌ 再想想：当前需要画 ${s.label} 的 ${target[1]}→${target[0]}。再试一次！`;
+                drawnLines.pop();
+            }
+            drawStartY = null; drawEndY = null; drawStartN = null;
+            drawCanvas();
+        }
+
+        // ============================================================
+        // 11. 通关弹窗 - 仅显示当前激发态的谱线条数
+        // ============================================================
+        function showFinalModal() {
+            // 计算当前激发态下的总谱线条数
+            const totalLines = seriesConfig.reduce((sum, s) => sum + s.transitions.length, 0);
+            
+            modalTitle.innerText = '🎉 闯关成功！';
+            modalBody.innerHTML = `
+                <p style="font-size:1.2rem;">你已掌握氢原子光谱！</p>
+                <p>⭐ 初始激发态: n = ${nMax}</p>
+                <p>⭐ 共画出 ${score} / ${totalLines} 条谱线</p>
+                <p style="color:#f5b56b;">🎯 你可以选择新的激发态继续挑战，或退出游戏。</p>
+                <div class="action-row">
+                    <button class="btn btn-primary" id="continueBtn">🔄 选择新激发态</button>
+                    <button class="btn btn-secondary" id="exitBtn">🚪 退出</button>
+                </div>
+            `;
+            modalActionBtn.style.display = 'none';
+            modalOverlay.classList.remove('hidden');
+
+            setTimeout(() => {
+                document.getElementById('continueBtn').addEventListener('click', function() {
+                    modalOverlay.classList.add('hidden');
+                    currentLevel = 1;
+                    showExcitationChoice(false);
+                });
+                document.getElementById('exitBtn').addEventListener('click', function() {
+                    modalOverlay.classList.add('hidden');
+                    infoMsg.innerHTML = '👋 感谢探索氢原子光谱！点击「开始闯关」可重新挑战。';
+                    gameFinished = true;
+                });
+            }, 50);
+        }
+
+        // ============================================================
+        // 12. 重置
+        // ============================================================
+        function fullReset() {
+            stopTimer();
+            gameActive = false;
+            levelCompleted = false;
+            currentLevel = 0;
+            currentSeriesIdx = 0;
+            currentTransIdx = 0;
+            drawnLines = [];
+            isDrawing = false;
+            drawStartY = null; drawEndY = null; drawStartN = null;
+            score = 0; timer = 0;
+            gameFinished = false;
+            timerDisplay.textContent = '⏱️ 00';
+            levelDisplay.textContent = '第一关 · 能级';
+            infoMsg.innerHTML = '💡 点击「开始闯关」查看背景与目标';
+            nMax = 6;
+            seriesConfig = generateSeriesConfig(nMax);
+            calculateLevelY(nMax);
+            progressBar.innerHTML = '';
+            seriesConfig.forEach((s, idx) => {
+                const span = document.createElement('span');
+                span.className = 'progress-step';
+                span.dataset.step = idx;
+                span.innerHTML = s.label + ' <span class="count">(0/' + s.transitions.length + ')</span>';
+                progressBar.appendChild(span);
+            });
+            updateProgress();
+            drawCanvas();
+            modalTitle.innerText = '📋 光谱分析报告';
+            modalBody.innerHTML = `
+                <div class="section-title">📌 情景</div>
+                <p>原子光谱分析小组的同学正在研究氢原子光谱，在分析能级跃迁时遇到了困惑，请你帮他完成分析报告。</p>
+                <div class="section-title">🎯 闯关说明</div>
+                <p>通过 3 个关卡，逐步推导出氢原子一般光谱的完整图像，最后一关通过拖拽连线巩固线系的界定。</p>
+                <p><strong>⏱️ 限时：</strong>每一关都有时间限制（30~150秒不等），超时需重新作答。</p>
+                <p><strong>✅ 反馈：</strong>答对获得 🎉 表扬，答错会得到 💡 提示并显示正确答案。</p>
+                <p><strong>🖱️ 操作：</strong>点击选择 / 输入数值 / 拖拽连线。</p>
+                <p style="color:#f5b56b;">🏆 完成第3关后即获得最终报告！</p>
+            `;
+            modalActionBtn.style.display = 'block';
+            modalActionBtn.textContent = '开始第一关';
+            modalActionBtn.className = 'btn btn-primary';
+            modalActionBtn.onclick = () => { modalOverlay.classList.add('hidden'); startLevel(0); };
+            modalOverlay.classList.remove('hidden');
+        }
+
+        // ============================================================
+        // 13. 事件绑定
+        // ============================================================
+        function initEvents() {
+            canvas.addEventListener('pointerdown', onPointerDown);
+            canvas.addEventListener('pointermove', onPointerMove);
+            canvas.addEventListener('pointerup', onPointerUp);
+            canvas.addEventListener('pointerleave', function(e) {
+                if (isDrawing) onPointerUp(e);
+            });
+            canvas.addEventListener('touchstart', (e) => { if (currentLevel === 2) e.preventDefault(); }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => { if (currentLevel === 2) e.preventDefault(); }, { passive: false });
+            resetBtn.addEventListener('click', () => { stopTimer(); fullReset(); });
+            startLevelBtn.addEventListener('click', () => {
+                if (gameActive) { infoMsg.innerHTML = '⏳ 当前关卡进行中，请完成或重置。'; return; }
+                if (gameFinished) {
+                    fullReset();
+                    return;
+                }
+                modalOverlay.classList.remove('hidden');
+            });
+        }
+
+        // ============================================================
+        // 14. 启动
+        // ============================================================
+        fullReset();
+        initEvents();
+        drawCanvas();
+        window.addEventListener('resize', () => { drawCanvas(); });
+    })();
+</script>
+</body>
+</html>
